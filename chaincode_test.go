@@ -1,6 +1,7 @@
 package hlfq_test
 
 import (
+	"fmt"
 	"testing"
 
 	hlfq "github.com/r3code/hlf-queue-example"

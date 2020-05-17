@@ -1,6 +1,7 @@
 package hlfq
 
 import (
+	"encoding/json"
 	"time"
 
 	cryptorand "crypto/rand"
@@ -16,7 +17,7 @@ import (
 // New inits a chaincode, adds chaincode methods to the rourer
 // All methods allow access to anyone
 func New() *router.Chaincode {
-	r := router.New("hlfq_without_access_control") // also initialized logger with "hlfq_*" prefix
+	r := router.New("hlfq") // also initialized logger with "hlfq_*" prefix
 
 	// Method for debug chaincode state
 	debug.AddHandlers(r, "debug", owner.Only)
@@ -60,10 +61,7 @@ func queuePush(c router.Context) (interface{}, error) {
 		return nil, errors.Wrap(err1, "failed generate item UID")
 	}
 	// getTxTimestamp() - time when transaction proposial was created
-	ct, err2 := c.Time()
-	if err2 != nil {
-		return nil, errors.Wrap(err2, "failed to read transaction create time")
-	}
+
 	spec := c.Param(newItemSpecParamName).(QueueItemSpec)
 	// creare queueItem
 	item := &QueueItem{
@@ -72,7 +70,7 @@ func queuePush(c router.Context) (interface{}, error) {
 		To:        spec.To,
 		Amount:    spec.Amount,
 		ExtraData: spec.ExtraData,
-		CreatedAt: ct.UTC(),
+		CreatedAt: time.Now().UTC(),
 	}
 
 	return item, c.State().Insert(item)
@@ -113,5 +111,38 @@ func queueSelect(c router.Context) (interface{}, error) {
 
 // read and return all queue items as list
 func queueListItems(c router.Context) (interface{}, error) {
+	// TODO: возврващать всегда в одном порядке сортировать по ID (ULID)
 	return c.State().List(queueItemKeyPrefix, &QueueItem{})
+}
+
+func queueListItemsSorted(c router.Context) (interface{}, error) {
+	// сортировать по ID (т.к. это ULID отсортируются как по времени, первый будет самый старый)
+	queryString := `{
+        "selector": {},
+        "sort": [
+            {"id": "asc"}
+        ]
+	}`
+
+	iter, err1 := c.Stub().GetQueryResult(queryString)
+	if err1 != nil {
+		return nil, errors.Wrap(err1, "failed to GetQueryResult") // TODO: тут падает в mock-тесте с `not implemended`
+	}
+	defer iter.Close()
+
+	items := []interface{}{}
+	for iter.HasNext() {
+		kvResult, err := iter.Next()
+		if err != nil {
+			return nil, errors.Wrap(err1, "fetch error")
+		}
+		item := QueueItem{}
+		err2 := json.Unmarshal(kvResult.Value, &item)
+		if err2 != nil {
+			return nil, errors.Wrap(err1, "value unmarshal error")
+		}
+		items = append(items, item)
+	}
+
+	return items, nil
 }

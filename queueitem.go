@@ -13,13 +13,13 @@ type QueueItemSpec struct {
 
 // QueueItem struct for chaincode state
 type QueueItem struct {
-	ID        string
-	From      string
-	To        string
-	Amount    int
-	ExtraData []byte
+	ID        string `json:"id"`
+	From      string `json:"from"`
+	To        string `json:"to"`
+	Amount    int    `json:"amount"`
+	ExtraData []byte `json:"extra"`
 
-	CreatedAt time.Time // set by chaincode method
+	CreatedAt time.Time `json:"created_at"` // set by chaincode method
 }
 
 // Key for QueueItem entry in chaincode state
