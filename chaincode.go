@@ -57,12 +57,12 @@ func queuePush(c router.Context) (interface{}, error) {
 	entropy := cryptorand.Reader
 	id, err1 := ulid.New(ulid.Timestamp(time.Now()), entropy)
 	if err1 != nil {
-		return nil, errors.Errorf("Error generating item UID: %v", err1)
+		return nil, errors.Wrap(err1, "failed generate item UID")
 	}
 	// getTxTimestamp() - time when transaction proposial was created
 	ct, err2 := c.Time()
 	if err2 != nil {
-		return nil, errors.Errorf("Error reading transaction create time: %v", err2)
+		return nil, errors.Wrap(err2, "failed to read transaction create time")
 	}
 	spec := c.Param(newItemSpecParamName).(QueueItemSpec)
 	// creare queueItem
