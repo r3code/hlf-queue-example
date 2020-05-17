@@ -10,7 +10,7 @@ import (
 	"github.com/s7techlab/cckit/extensions/debug"
 	"github.com/s7techlab/cckit/extensions/owner"
 	"github.com/s7techlab/cckit/router"
-	p "github.com/s7techlab/cckit/router/param"
+	pdef "github.com/s7techlab/cckit/router/param"
 )
 
 // New inits a chaincode, adds chaincode methods to the rourer
@@ -24,11 +24,11 @@ func New() *router.Chaincode {
 	r.Init(invokeInit)
 
 	r.
-		Invoke("Push", queuePush, p.Struct(newItemSpecParamName, &QueueItemSpec{})). // 1 struct argument, insert an item to the end of queue (chaincode method name `hlfqueuePush`)
-		Invoke("Pop", queuePop).                                                     // 1 struct argument, get the oldes item and delete it from queue
+		Invoke("Push", queuePush, pdef.Struct(newItemSpecParamName, &QueueItemSpec{})). // 1 struct argument, insert an item to the end of queue (chaincode method name `hlfqueuePush`)
+		Invoke("Pop", queuePop).                                                        // 1 struct argument, get the oldes item and delete it from queue
 		Invoke("ListItems", queueListItems).
-		Invoke("AttachData", queueAttachData, p.String(keyParamName), p.Bytes(attachedDataParamName)).
-		Query("Select", queueSelect, p.String(selectMethodParam))
+		Invoke("AttachData", queueAttachData, pdef.String(keyParamName), pdef.Bytes(attachedDataParamName)).
+		Query("Select", queueSelect, pdef.String(selectMethodParam))
 
 	return router.NewChaincode(r)
 }
