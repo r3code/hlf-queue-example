@@ -13,8 +13,6 @@ import (
 	p "github.com/s7techlab/cckit/router/param"
 )
 
-const MethodGroup = "hlfqueue"
-
 // New inits a chaincode, adds chaincode methods to the rourer
 // All methods allow access to anyone
 func New() *router.Chaincode {
@@ -25,9 +23,9 @@ func New() *router.Chaincode {
 
 	r.Init(invokeInit)
 
-	r.Group(MethodGroup).
+	r.
 		Invoke("Push", queuePush, p.Struct(newItemSpecParamName, &QueueItemSpec{})). // 1 struct argument, insert an item to the end of queue (chaincode method name `hlfqueuePush`)
-		Invoke("Pop", queuePop, p.Struct(popMethodParam, &QueueItem{})).             // 1 struct argument, get the oldes item and delete it from queue
+		Invoke("Pop", queuePop).                                                     // 1 struct argument, get the oldes item and delete it from queue
 		Invoke("ListItems", queueListItems).
 		Invoke("AttachData", queueAttachData, p.String(keyParamName), p.Bytes(attachedDataParamName)).
 		Query("Select", queueSelect, p.String(selectMethodParam))

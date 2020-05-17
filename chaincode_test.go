@@ -25,7 +25,7 @@ var (
 var _ = Describe("HLFQueue", func() {
 
 	//Create chaincode mock
-	ccMock := testcc.NewMockStub(hlfq.MethodGroup, hlfq.New())
+	ccMock := testcc.NewMockStub("hlfq_mock", hlfq.New())
 
 	BeforeSuite(func() {
 		// init chaincode
@@ -38,11 +38,11 @@ var _ = Describe("HLFQueue", func() {
 			// Add one item
 			testItem1 := hlfq.ExampleItems[0]
 			testItem2 := hlfq.ExampleItems[1]
-			ccMock.From(Authority).Invoke(hlfq.MethodGroup+"Push", testItem1)
-			ccMock.From(Authority).Invoke(hlfq.MethodGroup+"Push", testItem2)
+			ccMock.From(Authority).Invoke("Push", testItem1)
+			ccMock.From(Authority).Invoke("Push", testItem2)
 			//  &[]QueueItem{} - declares target type for unmarshalling from []byte received from chaincode
 
-			items := expectcc.PayloadIs(ccMock.Invoke(hlfq.MethodGroup+"ListItems"), &[]hlfq.QueueItem{}).([]hlfq.QueueItem)
+			items := expectcc.PayloadIs(ccMock.Invoke("ListItems"), &[]hlfq.QueueItem{}).([]hlfq.QueueItem)
 
 			Expect(items).To(HaveLen(2))
 			// fmt.Printf("items=%v", items)
@@ -60,9 +60,9 @@ var _ = Describe("HLFQueue", func() {
 		It("Allows to push an item to the queue", func() {
 			testData := hlfq.ExampleItems[3]
 			expectcc.ResponseOk(
-				ccMock.From(Authority).Invoke(hlfq.MethodGroup+"Push", testData))
+				ccMock.From(Authority).Invoke("Push", testData))
 			// get list and check it has one expected element
-			items := expectcc.PayloadIs(ccMock.Invoke(hlfq.MethodGroup+"ListItems"), &[]hlfq.QueueItem{}).([]hlfq.QueueItem)
+			items := expectcc.PayloadIs(ccMock.Invoke("ListItems"), &[]hlfq.QueueItem{}).([]hlfq.QueueItem)
 			Expect(items).To(HaveLen(3))
 			Expect(items[2].From).To(Equal(testData.From))
 			Expect(items[2].To).To(Equal(testData.To))
@@ -71,8 +71,14 @@ var _ = Describe("HLFQueue", func() {
 
 		// It("Allows to pop an item from the queue", func() {
 		// 	//invoke chaincode method from non authority actor
-		// 	expectcc.ResponseOk(
-		// 		ccMock.From(Authority).Invoke(hlfq.MethodGroup+"Pop", hlfq.ExampleItems[0]))
+		// 	item := expectcc.PayloadIs(ccMock.Invoke("Pop"), &hlfq.QueueItem{}).(hlfq.QueueItem)
+		// 	Expect(item.From).To(Equal(hlfq.ExampleItems[2].From))
+		// 	Expect(item.To).To(Equal(hlfq.ExampleItems[2].To))
+		// 	Expect(item.Amount).To(Equal(hlfq.ExampleItems[2].Amount))
+
+		// 	// get list and check it has 2 items now
+		// 	items := expectcc.PayloadIs(ccMock.Invoke("ListItems"), &[]hlfq.QueueItem{}).([]hlfq.QueueItem)
+		// 	Expect(items).To(HaveLen(2))
 		// })
 
 	})
@@ -81,9 +87,9 @@ var _ = Describe("HLFQueue", func() {
 
 	// 	It("Allow to add extra data to specified queue item", func() {
 	// 		// register second hlfqueue
-	// 		expectcc.ResponseOk(ccMock.From(Authority).Invoke(hlfq.MethodGroup+"AttachData", hlfq.ExampleItems[1]))
+	// 		expectcc.ResponseOk(ccMock.From(Authority).Invoke("AttachData", hlfq.ExampleItems[1]))
 	// 		cc := expectcc.PayloadIs(
-	// 			ccMock.From(Authority).Invoke(hlfq.MethodGroup+"AttachData"),
+	// 			ccMock.From(Authority).Invoke("AttachData"),
 	// 			&[]hlfq.QueueItem{}).([]hlfq.QueueItem)
 
 	// 		Expect(cc).To(HaveLen(2))
