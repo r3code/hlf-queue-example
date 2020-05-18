@@ -9,10 +9,11 @@ require (
 	github.com/docker/docker v17.12.0-ce-rc1.0.20200416190941-2200d938a2d5+incompatible // indirect
 	github.com/hyperledger/fabric v1.4.6
 	github.com/moby/sys/mount v0.1.0 // indirect
+	github.com/oklog/ulid v1.3.1
+	github.com/oklog/ulid/v2 v2.0.2
 	github.com/onsi/ginkgo v1.12.0
 	github.com/onsi/gomega v1.10.0
+	github.com/pkg/errors v0.8.1
 	github.com/s7techlab/cckit v0.6.10
 	gotest.tools/v3 v3.0.2 // indirect
-	github.com/oklog/ulid v1.3.1
-	github.com/pkg/errors v0.8.1
 )

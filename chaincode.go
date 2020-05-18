@@ -2,11 +2,13 @@ package hlfq
 
 import (
 	"encoding/json"
+	"fmt"
+	"sort"
 	"time"
 
 	cryptorand "crypto/rand"
 
-	"github.com/oklog/ulid"
+	"github.com/oklog/ulid/v2"
 	"github.com/pkg/errors"
 	"github.com/s7techlab/cckit/extensions/debug"
 	"github.com/s7techlab/cckit/extensions/owner"
@@ -56,6 +58,7 @@ func invokeInit(c router.Context) (interface{}, error) {
 // queuePush adds an item after last queue item
 func queuePush(c router.Context) (interface{}, error) {
 	entropy := cryptorand.Reader
+
 	id, err1 := ulid.New(ulid.Timestamp(time.Now()), entropy)
 	if err1 != nil {
 		return nil, errors.Wrap(err1, "failed generate item UID")
@@ -65,7 +68,7 @@ func queuePush(c router.Context) (interface{}, error) {
 	spec := c.Param(newItemSpecParamName).(QueueItemSpec)
 	// creare queueItem
 	item := &QueueItem{
-		ID:        id.String(),
+		ID:        id,
 		From:      spec.From,
 		To:        spec.To,
 		Amount:    spec.Amount,
@@ -112,7 +115,23 @@ func queueSelect(c router.Context) (interface{}, error) {
 // read and return all queue items as list
 func queueListItems(c router.Context) (interface{}, error) {
 	// TODO: возврващать всегда в одном порядке сортировать по ID (ULID)
-	return c.State().List(queueItemKeyPrefix, &QueueItem{})
+	res, err := c.State().List(queueItemKeyPrefix, &QueueItem{})
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to list queue items")
+	}
+	list := res.([]interface{})
+
+	var items []QueueItem
+	for _, item := range list {
+		items = append(items, item.(QueueItem))
+	}
+	fmt.Printf("queueListItems: unsorted items = %v\n\n", items)
+	sort.SliceStable(items, func(i, j int) bool {
+		//fmt.Printf("queueListItems: less %v, %v < %v\n\n", (items[i].ID.Compare(items[j].ID) < 0), items[i].ID.String(), items[j].ID.String())
+		return items[i].ID.Compare(items[j].ID) < 0
+	})
+	return items, nil
+	// return c.State().List(queueItemKeyPrefix, &QueueItem{})
 }
 
 func queueListItemsSorted(c router.Context) (interface{}, error) {
