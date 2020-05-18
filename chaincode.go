@@ -2,7 +2,6 @@ package hlfq
 
 import (
 	"encoding/json"
-	"fmt"
 	"sort"
 	"time"
 
@@ -125,7 +124,7 @@ func queueListItems(c router.Context) (interface{}, error) {
 	for _, item := range list {
 		items = append(items, item.(QueueItem))
 	}
-	fmt.Printf("queueListItems: unsorted items = %v\n\n", items)
+	// fmt.Printf("queueListItems: unsorted items = %v\n\n", items)
 	sort.SliceStable(items, func(i, j int) bool {
 		//fmt.Printf("queueListItems: less %v, %v < %v\n\n", (items[i].ID.Compare(items[j].ID) < 0), items[i].ID.String(), items[j].ID.String())
 		return items[i].ID.Compare(items[j].ID) < 0
