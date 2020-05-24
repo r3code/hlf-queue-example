@@ -35,7 +35,7 @@ var _ = Describe("HLFQueue", func() {
 
 	Describe("Init Check", func() {
 		It("Do init initial queue state", func() {
-			//expectcc.ResponseOk(ccMock.MockInit("1", [][]byte{}))
+			//expectcc.ResponseOk(ccMock.MockInit("1", [][]byte{})) ! ALREADY INITED, see BeforeSuite
 
 			Expect(ccMock.GetState("Queue~HEAD")).To(Equal(([]byte(hlfq.EmptyItemPointer))))
 			Expect(ccMock.GetState("Queue~TAIL")).To(Equal(([]byte(hlfq.EmptyItemPointer))))
