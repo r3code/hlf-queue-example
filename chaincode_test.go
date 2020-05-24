@@ -33,6 +33,15 @@ var _ = Describe("HLFQueue", func() {
 		expectcc.ResponseOk(ccMock.From(Authority).Init()) // init chaincode
 	})
 
+	Describe("Init Check", func() {
+		It("Do init initial queue state", func() {
+			//expectcc.ResponseOk(ccMock.MockInit("1", [][]byte{}))
+
+			Expect(ccMock.GetState("Queue~HEAD")).To(Equal(([]byte(hlfq.EmptyItemPointer))))
+			Expect(ccMock.GetState("Queue~TAIL")).To(Equal(([]byte(hlfq.EmptyItemPointer))))
+		})
+	})
+
 	Describe("Inspect Queue", func() {
 
 		It("Allow to get queue items as list", func() {
@@ -60,33 +69,33 @@ var _ = Describe("HLFQueue", func() {
 		})
 	})
 
-	// Describe("Push/Pop", func() {
+	Describe("Push/Pop", func() {
 
-	// 	It("Allows to push an item to the queue", func() {
-	// 		testData := hlfq.ExampleItems[3]
-	// 		expectcc.ResponseOk(
-	// 			ccMock.From(Authority).Invoke("Push", testData))
-	// 		// get list and check it has one expected element
-	// 		items := expectcc.PayloadIs(ccMock.Invoke("ListItems"), &[]hlfq.QueueItem{}).([]hlfq.QueueItem)
-	// 		Expect(items).To(HaveLen(3))
-	// 		Expect(items[3].From).To(Equal(testData.From))
-	// 		Expect(items[3].To).To(Equal(testData.To))
-	// 		Expect(items[3].Amount).To(Equal(testData.Amount))
-	// 	})
+		It("Allows to push an item to the queue", func() {
+			testData := hlfq.ExampleItems[3]
+			expectcc.ResponseOk(
+				ccMock.From(Authority).Invoke("Push", testData))
+			// get list and check it has one expected element
+			items := expectcc.PayloadIs(ccMock.Invoke("ListItems"), &[]hlfq.QueueItem{}).([]hlfq.QueueItem)
+			Expect(items).To(HaveLen(4))
+			Expect(items[3].From).To(Equal(testData.From))
+			Expect(items[3].To).To(Equal(testData.To))
+			Expect(items[3].Amount).To(Equal(testData.Amount))
+		})
 
-	// 	// It("Allows to pop an item from the queue", func() {
-	// 	// 	//invoke chaincode method from non authority actor
-	// 	// 	item := expectcc.PayloadIs(ccMock.Invoke("Pop"), &hlfq.QueueItem{}).(hlfq.QueueItem)
-	// 	// 	Expect(item.From).To(Equal(hlfq.ExampleItems[2].From))
-	// 	// 	Expect(item.To).To(Equal(hlfq.ExampleItems[2].To))
-	// 	// 	Expect(item.Amount).To(Equal(hlfq.ExampleItems[2].Amount))
+		// 	// It("Allows to pop an item from the queue", func() {
+		// 	// 	//invoke chaincode method from non authority actor
+		// 	// 	item := expectcc.PayloadIs(ccMock.Invoke("Pop"), &hlfq.QueueItem{}).(hlfq.QueueItem)
+		// 	// 	Expect(item.From).To(Equal(hlfq.ExampleItems[2].From))
+		// 	// 	Expect(item.To).To(Equal(hlfq.ExampleItems[2].To))
+		// 	// 	Expect(item.Amount).To(Equal(hlfq.ExampleItems[2].Amount))
 
-	// 	// 	// get list and check it has 2 items now
-	// 	// 	items := expectcc.PayloadIs(ccMock.Invoke("ListItems"), &[]hlfq.QueueItem{}).([]hlfq.QueueItem)
-	// 	// 	Expect(items).To(HaveLen(2))
-	// 	// })
+		// 	// 	// get list and check it has 2 items now
+		// 	// 	items := expectcc.PayloadIs(ccMock.Invoke("ListItems"), &[]hlfq.QueueItem{}).([]hlfq.QueueItem)
+		// 	// 	Expect(items).To(HaveLen(2))
+		// 	// })
 
-	// })
+	})
 
 	// Describe("Attach extra context to item", func() {
 
