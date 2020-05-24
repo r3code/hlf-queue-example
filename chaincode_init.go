@@ -10,13 +10,13 @@ import (
 // **
 
 // EmptyItemPointerKey HEAD or TAIL value when queue is empty
-const EmptyItemPointerKey = "*EMPTY*"
+var EmptyItemPointerKey []string = []string{"*EMPTY*"}
 
 func invokeInitLedger(c router.Context) (interface{}, error) {
 	var headPointer *QueuePointer = NewQueueHeadPointer()
-	headPointer.PointerKey = []string{EmptyItemPointerKey}
+	headPointer.PointerKey = EmptyItemPointerKey
 	var tailPointer *QueuePointer = NewQueueTailPointer()
-	tailPointer.PointerKey = []string{EmptyItemPointerKey}
+	tailPointer.PointerKey = EmptyItemPointerKey
 
 	// init place to store a head pointer
 	if err := c.State().Insert(headPointer); err != nil {

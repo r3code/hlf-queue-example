@@ -35,7 +35,7 @@ var _ = Describe("HLFQueue", func() {
 	Describe("Push/Pop", func() {
 
 		It("Allows to push an item to the queue", func() {
-			testData := hlfq.ExampleItems[3]
+			testData := hlfq.ExampleItems[0]
 			expectcc.ResponseOk(
 				ccMock.From(Authority).Invoke("Push", testData))
 			// get list and check it has one expected element

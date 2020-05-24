@@ -2,6 +2,7 @@ package hlfq
 
 import (
 	"encoding/json"
+	"fmt"
 	"reflect"
 	"sort"
 	"time"
@@ -41,7 +42,7 @@ func New() *router.Chaincode {
 // **
 
 const (
-	queueItemKeyPrefix     = "QueueItem"
+	queueItemKeyPrefix     = "queueItemKey"
 	newItemSpecParam       = "newItemSpec"
 	extractedItemParam     = "extractedItem"
 	selectQueryStringParam = "queryString"
@@ -74,11 +75,15 @@ func queuePush(c router.Context) (interface{}, error) {
 
 	headIsNotSet := reflect.DeepEqual(headKey, EmptyItemPointerKey)
 	if headIsNotSet {
+		fmt.Printf("headIsNotSet\n")
 		// set head pointer to CUR
 		curItem.Key()
 		storeHeadKey(c, curItemKey) // TODO: handle store write error
 	}
-
+	h1, _ := readHeadItemKey(c)
+	t1, _ := readTailItemKey(c)
+	fmt.Printf("queuePush head: %+v\n", h1)
+	fmt.Printf("queuePush tail: %+v\n", t1)
 	// insert return an error if item already exists
 	return curItem, c.State().Insert(curItem)
 }
