@@ -28,7 +28,7 @@ func New() *router.Chaincode {
 	r.
 		Invoke("Push", queuePush, pdef.Struct(newItemSpecParamName, &QueueItemSpec{})). // 1 struct argument, insert an item to the end of queue (chaincode method name `hlfqueuePush`)
 		Invoke("Pop", queuePop).                                                        // 1 struct argument, get the oldes item and delete it from queue
-		Invoke("ListItems", queueListItems).
+		Invoke("ListItems", queueListItemsAsIs).
 		Invoke("AttachData", queueAttachData, pdef.String(keyParamName), pdef.Bytes(attachedDataParamName)).
 		Query("Select", queueSelect, pdef.String(selectMethodParam))
 
@@ -111,9 +111,8 @@ func queueSelect(c router.Context) (interface{}, error) {
 	return nil, nil
 }
 
-// read and return all queue items as list
+// queueListItems read and return all queue items as list sorted by ULID stored in ID
 func queueListItems(c router.Context) (interface{}, error) {
-	// TODO: возврващать всегда в одном порядке сортировать по ID (ULID)
 	res, err := c.State().List(queueItemKeyPrefix, &QueueItem{})
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to list queue items")
@@ -130,9 +129,10 @@ func queueListItems(c router.Context) (interface{}, error) {
 		return items[i].ID.Compare(items[j].ID) < 0
 	})
 	return items, nil
-	// return c.State().List(queueItemKeyPrefix, &QueueItem{})
 }
 
+// queueListItemsSorted implemens lising queue by CouchDB rich query
+// NOTE: you can not test it by Mock, it doesn't implement GetQueryResult()
 func queueListItemsSorted(c router.Context) (interface{}, error) {
 	// сортировать по ID (т.к. это ULID отсортируются как по времени, первый будет самый старый)
 	queryString := `{
@@ -163,4 +163,9 @@ func queueListItemsSorted(c router.Context) (interface{}, error) {
 	}
 
 	return items, nil
+}
+
+// queueListItemsAsIs returns queue items in order they retreived from state DB (unexpected)
+func queueListItemsAsIs(c router.Context) (interface{}, error) {
+	return c.State().List(queueItemKeyPrefix, &QueueItem{})
 }
