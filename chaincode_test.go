@@ -2,7 +2,6 @@ package hlfq_test
 
 import (
 	"testing"
-	"time"
 
 	hlfq "github.com/r3code/hlf-queue-example"
 	"github.com/s7techlab/cckit/identity/testdata"
@@ -33,42 +32,6 @@ var _ = Describe("HLFQueue", func() {
 		expectcc.ResponseOk(ccMock.From(Authority).Init()) // init chaincode
 	})
 
-	Describe("Init Check", func() {
-		It("Do init initial queue state", func() {
-			//expectcc.ResponseOk(ccMock.MockInit("1", [][]byte{})) ! ALREADY INITED, see BeforeSuite
-
-			Expect(ccMock.GetState("Queue~HEAD")).To(Equal(([]byte(hlfq.EmptyItemPointer))))
-			Expect(ccMock.GetState("Queue~TAIL")).To(Equal(([]byte(hlfq.EmptyItemPointer))))
-		})
-	})
-
-	Describe("Inspect Queue", func() {
-
-		It("Allow to get queue items as list", func() {
-			// Add one item
-			testItems := hlfq.ExampleItems[0:3]
-			for _, ti := range testItems {
-				ccMock.From(Authority).Invoke("Push", ti)
-				// NOTE: if there is no sleep you would get an unexpected order of elemenst in List,
-				time.Sleep(time.Millisecond) // if no delay, Push() #3 of #2 can be executed before Push #1
-			}
-			//  &[]QueueItem{} - declares target type for unmarshalling from []byte received from chaincode
-			items := expectcc.PayloadIs(ccMock.Invoke("ListItems"), &[]hlfq.QueueItem{}).([]hlfq.QueueItem)
-			// fmt.Printf("  ***TEST_items=%+v\n", testItems)
-			// fmt.Printf("   ***     items=%+v\n", items)
-			Expect(items).To(HaveLen(3))
-
-			for i, ti := range testItems {
-				// Dont comapre ID, it's generated at any Push call
-				Expect(items[i].Amount).To(Equal(ti.Amount))
-				Expect(items[i].From).To(Equal(ti.From))
-				Expect(items[i].To).To(Equal(ti.To))
-
-			}
-
-		})
-	})
-
 	Describe("Push/Pop", func() {
 
 		It("Allows to push an item to the queue", func() {
@@ -77,10 +40,10 @@ var _ = Describe("HLFQueue", func() {
 				ccMock.From(Authority).Invoke("Push", testData))
 			// get list and check it has one expected element
 			items := expectcc.PayloadIs(ccMock.Invoke("ListItems"), &[]hlfq.QueueItem{}).([]hlfq.QueueItem)
-			Expect(items).To(HaveLen(4))
-			Expect(items[3].From).To(Equal(testData.From))
-			Expect(items[3].To).To(Equal(testData.To))
-			Expect(items[3].Amount).To(Equal(testData.Amount))
+			Expect(items).To(HaveLen(1))
+			Expect(items[0].From).To(Equal(testData.From))
+			Expect(items[0].To).To(Equal(testData.To))
+			Expect(items[0].Amount).To(Equal(testData.Amount))
 		})
 
 		// 	// It("Allows to pop an item from the queue", func() {
@@ -96,6 +59,33 @@ var _ = Describe("HLFQueue", func() {
 		// 	// })
 
 	})
+
+	// Describe("Inspect Queue", func() {
+
+	// 	It("Allow to get queue items as list", func() {
+	// 		// Add one item
+	// 		testItems := hlfq.ExampleItems[0:3]
+	// 		for _, ti := range testItems {
+	// 			ccMock.From(Authority).Invoke("Push", ti)
+	// 			// NOTE: if there is no sleep you would get an unexpected order of elemenst in List,
+	// 			time.Sleep(time.Millisecond) // if no delay, Push() #3 of #2 can be executed before Push #1
+	// 		}
+	// 		//  &[]QueueItem{} - declares target type for unmarshalling from []byte received from chaincode
+	// 		items := expectcc.PayloadIs(ccMock.Invoke("ListItems"), &[]hlfq.QueueItem{}).([]hlfq.QueueItem)
+	// 		// fmt.Printf("  ***TEST_items=%+v\n", testItems)
+	// 		// fmt.Printf("   ***     items=%+v\n", items)
+	// 		Expect(items).To(HaveLen(3))
+
+	// 		for i, ti := range testItems {
+	// 			// Dont comapre ID, it's generated at any Push call
+	// 			Expect(items[i].Amount).To(Equal(ti.Amount))
+	// 			Expect(items[i].From).To(Equal(ti.From))
+	// 			Expect(items[i].To).To(Equal(ti.To))
+
+	// 		}
+
+	// 	})
+	// })
 
 	// Describe("Attach extra context to item", func() {
 

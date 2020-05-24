@@ -6,6 +6,36 @@ import (
 	"github.com/oklog/ulid/v2"
 )
 
+const queuePointerTypeName = "queuPointer"
+
+// QueuePointer holds a key pointing to another state
+type QueuePointer struct {
+	PointerName string
+	PointerKey  []string
+}
+
+// NewQueuePointer creates new QueuePointer (for Head or Tail)
+func NewQueuePointer(name string) *QueuePointer {
+	return &QueuePointer{PointerName: name}
+}
+
+// NewQueueHeadPointer creates a QueuePointer for HEAD
+func NewQueueHeadPointer() *QueuePointer {
+	return &QueuePointer{PointerName: "HeadPointer"}
+}
+
+// NewQueueTailPointer creates a QueuePointer for TAIL
+func NewQueueTailPointer() *QueuePointer {
+	return &QueuePointer{PointerName: "TailPointer"}
+}
+
+// Key for QueuePointer entry in chaincode state
+func (qp QueuePointer) Key() ([]string, error) {
+	s := []string{queuePointerTypeName}
+	s = append(s, qp.PointerName)
+	return s, nil
+}
+
 // QueueItemSpec chaincode method argument
 type QueueItemSpec struct {
 	ID        ulid.ULID
@@ -17,6 +47,8 @@ type QueueItemSpec struct {
 
 // QueueItem struct for chaincode state
 type QueueItem struct {
+	PrevKey   []string  `json:"prevKey"`
+	NextKey   []string  `json:"nextKey"`
 	ID        ulid.ULID `json:"id"`
 	From      string    `json:"from"`
 	To        string    `json:"to"`
@@ -27,6 +59,6 @@ type QueueItem struct {
 }
 
 // Key for QueueItem entry in chaincode state
-func (c QueueItem) Key() ([]string, error) {
-	return []string{queueKeyPrefix, c.ID.String()}, nil
+func (qi QueueItem) Key() ([]string, error) {
+	return []string{queueItemKeyPrefix, qi.ID.String()}, nil
 }
