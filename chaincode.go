@@ -15,6 +15,9 @@ import (
 	pdef "github.com/s7techlab/cckit/router/param"
 )
 
+// EmptyItemPointer a valus to store in head and tail pointer when queue is empty
+const EmptyItemPointer = "*NIL*"
+
 // New inits a chaincode, adds chaincode methods to the rourer
 // All methods allow access to anyone
 func New() *router.Chaincode {
@@ -26,11 +29,11 @@ func New() *router.Chaincode {
 	r.Init(invokeInit)
 
 	r.
-		Invoke("Push", queuePush, pdef.Struct(newItemSpecParamName, &QueueItemSpec{})). // 1 struct argument, insert an item to the end of queue (chaincode method name `hlfqueuePush`)
-		Invoke("Pop", queuePop).                                                        // 1 struct argument, get the oldes item and delete it from queue
+		Invoke("Push", queuePush, pdef.Struct(newItemSpecParam, &QueueItemSpec{})). // 1 struct argument, insert an item to the end of queue (chaincode method name `hlfqueuePush`)
+		Invoke("Pop", queuePop).                                                    // 1 struct argument, get the oldes item and delete it from queue
 		Invoke("ListItems", queueListItemsAsIs).
-		Invoke("AttachData", queueAttachData, pdef.String(keyParamName), pdef.Bytes(attachedDataParamName)).
-		Query("Select", queueSelect, pdef.String(selectMethodParam))
+		Invoke("AttachData", queueAttachData, pdef.String(itemKeyParam), pdef.Bytes(attachedDataParam)).
+		Query("Select", queueSelect, pdef.String(selectQueryStringParam))
 
 	return router.NewChaincode(r)
 }
@@ -39,18 +42,29 @@ func New() *router.Chaincode {
 // ** Chaincode methods **
 // **
 
-const queueItemKeyPrefix = "QueueItem"
-
 const (
-	newItemSpecParamName  = "newItemSpec"
-	popMethodParam        = "extractedItem"
-	selectMethodParam     = "selectQueue"
-	keyParamName          = "itemKey"
-	attachedDataParamName = "attachedData"
+	queueKeyPrefix         = "Queue"
+	newItemSpecParam       = "newItemSpec"
+	extractedItemParam     = "extractedItem"
+	selectQueryStringParam = "queryString"
+	itemKeyParam           = "itemKey"
+	initQueueNameParam     = "queueName"
+	attachedDataParam      = "attachedData"
+	// a state key name for a tag block hoding a key name of the first queue item
+	headStoreKey = queueKeyPrefix + "~HEAD"
+	// a state key name for a tag block hoding a key name of the last queue item
+	tailStoreKey = queueKeyPrefix + "~TAIL"
 )
 
 func invokeInit(c router.Context) (interface{}, error) {
-	// no state init required
+	// init place to store a head pointer
+	if err := c.State().Insert(headStoreKey, EmptyItemPointer); err != nil {
+		return nil, errors.Wrap(err, "failed to init head pointer store")
+	}
+	// init place to store a tail pointer
+	if err := c.State().Insert(tailStoreKey, EmptyItemPointer); err != nil {
+		return nil, errors.Wrap(err, "failed to init tail pointer store")
+	}
 	return nil, nil
 }
 
@@ -64,7 +78,7 @@ func queuePush(c router.Context) (interface{}, error) {
 	}
 	// getTxTimestamp() - time when transaction proposial was created
 
-	spec := c.Param(newItemSpecParamName).(QueueItemSpec)
+	spec := c.Param(newItemSpecParam).(QueueItemSpec)
 	// creare queueItem
 	item := &QueueItem{
 		ID:        id,
@@ -113,7 +127,7 @@ func queueSelect(c router.Context) (interface{}, error) {
 
 // queueListItems read and return all queue items as list sorted by ULID stored in ID
 func queueListItems(c router.Context) (interface{}, error) {
-	res, err := c.State().List(queueItemKeyPrefix, &QueueItem{})
+	res, err := c.State().List(queueKeyPrefix, &QueueItem{})
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to list queue items")
 	}
@@ -167,5 +181,26 @@ func queueListItemsSorted(c router.Context) (interface{}, error) {
 
 // queueListItemsAsIs returns queue items in order they retreived from state DB (unexpected)
 func queueListItemsAsIs(c router.Context) (interface{}, error) {
-	return c.State().List(queueItemKeyPrefix, &QueueItem{})
+	return c.State().List(queueKeyPrefix, &QueueItem{})
+}
+
+//
+// *** Utilty methods ***
+//
+func getQueueHeadKey(c router.Context) (tailKey string, err error) {
+	res, err := c.State().Get(headStoreKey)
+	if err != nil {
+		return tailKey, errors.Wrap(err, "failed to read key of a head item")
+	}
+	tailKey = res.(string)
+	return tailKey, nil
+}
+
+func getQueueTailKey(c router.Context) (tailKey string, err error) {
+	res, err := c.State().Get(tailStoreKey)
+	if err != nil {
+		return tailKey, errors.Wrap(err, "failed to read key of a tail item")
+	}
+	tailKey = res.(string)
+	return tailKey, nil
 }

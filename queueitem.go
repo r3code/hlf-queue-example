@@ -28,5 +28,5 @@ type QueueItem struct {
 
 // Key for QueueItem entry in chaincode state
 func (c QueueItem) Key() ([]string, error) {
-	return []string{queueItemKeyPrefix, c.ID.String(), c.CreatedAt.String()}, nil
+	return []string{queueKeyPrefix, c.ID.String(), c.CreatedAt.String()}, nil
 }
