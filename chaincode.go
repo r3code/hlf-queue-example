@@ -77,16 +77,16 @@ func queuePush(c router.Context) (interface{}, error) {
 		return nil, errors.Wrap(err1, "failed generate item UID")
 	}
 	// getTxTimestamp() - time when transaction proposial was created
-
+	t, _ := c.Time() // tx time
 	spec := c.Param(newItemSpecParam).(QueueItemSpec)
 	// creare queueItem
 	item := &QueueItem{
-		ID:        id,
-		From:      spec.From,
-		To:        spec.To,
-		Amount:    spec.Amount,
-		ExtraData: spec.ExtraData,
-		CreatedAt: time.Now().UTC(),
+		ID:          id,
+		From:        spec.From,
+		To:          spec.To,
+		Amount:      spec.Amount,
+		ExtraData:   spec.ExtraData,
+		UpdatedTime: t,
 	}
 
 	return item, c.State().Insert(item)

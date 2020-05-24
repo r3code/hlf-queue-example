@@ -23,10 +23,10 @@ type QueueItem struct {
 	Amount    int       `json:"amount"`
 	ExtraData []byte    `json:"extra"`
 
-	CreatedAt time.Time `json:"created_at"` // set by chaincode method
+	UpdatedTime time.Time `json:"updated_time"` // set by chaincode method
 }
 
 // Key for QueueItem entry in chaincode state
 func (c QueueItem) Key() ([]string, error) {
-	return []string{queueKeyPrefix, c.ID.String(), c.CreatedAt.String()}, nil
+	return []string{queueKeyPrefix, c.ID.String()}, nil
 }
