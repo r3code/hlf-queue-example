@@ -46,17 +46,17 @@ var _ = Describe("HLFQueue", func() {
 			Expect(items[0].Amount).To(Equal(testData.Amount))
 		})
 
-		// 	// It("Allows to pop an item from the queue", func() {
-		// 	// 	//invoke chaincode method from non authority actor
-		// 	// 	item := expectcc.PayloadIs(ccMock.Invoke("Pop"), &hlfq.QueueItem{}).(hlfq.QueueItem)
-		// 	// 	Expect(item.From).To(Equal(hlfq.ExampleItems[2].From))
-		// 	// 	Expect(item.To).To(Equal(hlfq.ExampleItems[2].To))
-		// 	// 	Expect(item.Amount).To(Equal(hlfq.ExampleItems[2].Amount))
+		It("Allows to pop an item from the queue", func() {
+			//invoke chaincode method from non authority actor
+			headitem := expectcc.PayloadIs(ccMock.Invoke("Pop"), &hlfq.QueueItem{}).(hlfq.QueueItem)
+			Expect(headitem.From).To(Equal(hlfq.ExampleItems[0].From))
+			Expect(headitem.To).To(Equal(hlfq.ExampleItems[0].To))
+			Expect(headitem.Amount).To(Equal(hlfq.ExampleItems[0].Amount))
 
-		// 	// 	// get list and check it has 2 items now
-		// 	// 	items := expectcc.PayloadIs(ccMock.Invoke("ListItems"), &[]hlfq.QueueItem{}).([]hlfq.QueueItem)
-		// 	// 	Expect(items).To(HaveLen(2))
-		// 	// })
+			// get list and check it has 0 items now
+			items := expectcc.PayloadIs(ccMock.Invoke("ListItems"), &[]hlfq.QueueItem{}).([]hlfq.QueueItem)
+			Expect(items).To(HaveLen(0))
+		})
 
 	})
 
