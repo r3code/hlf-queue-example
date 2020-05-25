@@ -117,19 +117,35 @@ var _ = Describe("HLFQueue", func() {
 		})
 	})
 
-	// Describe("Attach extra context to item", func() {
+	Describe("Attach extra context to item", func() {
 
-	// 	It("Allow to add extra data to specified queue item", func() {
-	// 		// register second hlfqueue
-	// 		expectcc.ResponseOk(ccMock.From(Authority).Invoke("AttachData", hlfq.ExampleItems[1]))
-	// 		cc := expectcc.PayloadIs(
-	// 			ccMock.From(Authority).Invoke("AttachData"),
-	// 			&[]hlfq.QueueItem{}).([]hlfq.QueueItem)
+		It("Allow to add extra data to specified queue item", func() {
+			// lets Push 3 items into queue in reverse order
+			expectcc.ResponseOk(
+				ccMock.From(Authority).Invoke("Push", hlfq.ExampleItems[2])) // head
+			expectcc.ResponseOk(
+				ccMock.From(Authority).Invoke("Push", hlfq.ExampleItems[1]))
+			// at the begin the test item has no ExtraData
+			Expect(hlfq.ExampleItems[1].ExtraData).To(Equal([]byte{}))
+			expectcc.ResponseOk(
+				ccMock.From(Authority).Invoke("Push", hlfq.ExampleItems[0])) // tail
+			// take a list
+			items := expectcc.PayloadIs(ccMock.Invoke("ListItems"), &[]hlfq.QueueItem{}).([]hlfq.QueueItem)
+			// select item 1
+			item1 := items[1]
+			item1IDStr := item1.ID.String()
+			// attach extra data
+			testExtraData := []byte("An extra data for " + item1IDStr)
 
-	// 		Expect(cc).To(HaveLen(2))
-	// 	})
+			updatedItem := expectcc.PayloadIs(
+				ccMock.From(Authority).Invoke("AttachData", item1IDStr, testExtraData),
+				&hlfq.QueueItem{}).(hlfq.QueueItem)
 
-	// })
+			Expect(updatedItem.ID).To(Equal(item1.ID))
+			Expect(string(updatedItem.ExtraData)).To(Equal(string(testExtraData)))
+		})
+
+	})
 
 	// Describe("Items Rrordering", func() {
 
