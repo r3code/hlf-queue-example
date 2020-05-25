@@ -66,13 +66,13 @@ func (qi QueueItem) Key() ([]string, error) {
 }
 
 func (qi QueueItem) hasNext() bool {
-	fmt.Printf("qi=%+v", qi)
-	fmt.Printf("qi.NextKey=%+v", qi.NextKey)
-	fmt.Printf("EmptyItemPointerKey=%+v", EmptyItemPointerKey)
+	fmt.Println("== hasNext ==")
+	fmt.Printf("qi=%+v\n", qi)
 	return !reflect.DeepEqual(qi.NextKey, EmptyItemPointerKey)
 }
 
 func (qi QueueItem) hasPrev() bool {
-	fmt.Printf("qi.PrevKey=%+v", qi.PrevKey)
+	fmt.Println("== hasPrev ==")
+	fmt.Printf("qi=%+v\n", qi)
 	return !reflect.DeepEqual(qi.PrevKey, EmptyItemPointerKey)
 }
