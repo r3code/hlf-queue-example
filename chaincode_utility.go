@@ -117,3 +117,15 @@ func hasTail(c router.Context) (bool, error) {
 	}
 	return true, nil
 }
+
+func hasHead(c router.Context) (bool, error) {
+	headKey, err := readHeadItemKey(c)
+	if err != nil {
+		return false, err
+	}
+	if reflect.DeepEqual(headKey, EmptyItemPointerKey) {
+		return false, nil
+	}
+	return true, nil
+}
+
