@@ -3,7 +3,6 @@ package hlfq
 import (
 	"encoding/json"
 	"fmt"
-	"reflect"
 	"sort"
 	"time"
 
@@ -71,19 +70,18 @@ func queuePush(c router.Context) (interface{}, error) {
 	storeTailKey(c, curItemKey) // TAIL = CUR
 
 	// UPDATE Head key if head not set
-	headKey, _ := readHeadItemKey(c) // TODO: handle head item key read error
-
-	headIsNotSet := reflect.DeepEqual(headKey, EmptyItemPointerKey)
-	if headIsNotSet {
-		fmt.Printf("headIsNotSet\n")
+	headPresent, _ := hasHead(c) // TODO: handle error
+	if !headPresent {
+		fmt.Printf("headNotPresent\n")
 		// set head pointer to CUR
-		curItem.Key()
 		storeHeadKey(c, curItemKey) // TODO: handle store write error
 	}
-	h1, _ := readHeadItemKey(c)
-	t1, _ := readTailItemKey(c)
-	fmt.Printf("queuePush head: %+v\n", h1)
-	fmt.Printf("queuePush tail: %+v\n", t1)
+	// printout updated states
+	// h1, _ := readHeadItemKey(c)
+	// t1, _ := readTailItemKey(c)
+	// fmt.Printf("queuePush head: %+v\n", h1)
+	// fmt.Printf("queuePush tail: %+v\n", t1)
+
 	// insert return an error if item already exists
 	return curItem, c.State().Insert(curItem)
 }
@@ -102,6 +100,8 @@ func makeQueueItem(spec QueueItemSpec, t time.Time) (*QueueItem, error) {
 		Amount:      spec.Amount,
 		ExtraData:   spec.ExtraData,
 		UpdatedTime: t,
+		NextKey:     EmptyItemPointerKey,
+		PrevKey:     EmptyItemPointerKey,
 	}
 	return item, nil
 
@@ -109,9 +109,31 @@ func makeQueueItem(spec QueueItemSpec, t time.Time) (*QueueItem, error) {
 
 // queuePop read and delete the first queue item (the oldest, FIFO)
 func queuePop(c router.Context) (extractedItem interface{}, err error) {
+	headPresent, _ := hasHead(c) // TODO: handle error
+	if !headPresent {
+		return extractedItem, errors.New("Empty queue")
+	}
 
+	headKey, _ := readHeadItemKey(c)                   // TODO: handle error
+	resHead, _ := c.State().Get(headKey, &QueueItem{}) // TODO: handle error
+	headItem := resHead.(QueueItem)
+	// remove Prev link from nextItem if it exists
+	if headItem.hasNext() {
+		// получить следующий элемент
+		nextKey := headItem.NextKey
+		// получить из State nextItem
+		resNext, _ := c.State().Get(nextKey, &QueueItem{}) // TODO: handle error
+		nextItem := resNext.(QueueItem)
+		// удалить у nextItem его Prev
+		nextItem.PrevKey = EmptyItemPointerKey
+		// сохранить обновленный nextItem
+		c.State().Put(nextItem) // TODO: handle error
+	}
+	// remove extracted item from state
+	c.State().Delete(headKey) // TODO: handle error
 	//return item, c.State().Delete(item)
-	return extractedItem, err
+	extractedItem = headItem
+	return extractedItem, nil
 }
 
 // attcahes extra data to the item specified by key, returns error if key not exists
