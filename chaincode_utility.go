@@ -32,11 +32,11 @@ import (
 
 // read current key of head item
 func readHeadItemKey(c router.Context) (headKey []string, err error) {
-	res, err := c.State().Get(NewQueueHeadPointer(), &QueuePointer{})
+	pointerKey, _ := NewQueueHeadPointer().Key()
+	headPointer, err := readQueuePointer(c, pointerKey)
 	if err != nil {
 		return headKey, errors.Wrap(err, "failed to read key of a head item")
 	}
-	headPointer := res.(QueuePointer)
 	//fmt.Printf("*HEAD* %+v ", headPointer)
 	headKey = headPointer.PointerKey
 	return headKey, nil
@@ -44,11 +44,11 @@ func readHeadItemKey(c router.Context) (headKey []string, err error) {
 
 // read current key of tail item
 func readTailItemKey(c router.Context) (tailKey []string, err error) {
-	res, err := c.State().Get(NewQueueTailPointer(), &QueuePointer{})
+	pointerKey, _ := NewQueueTailPointer().Key()
+	tailPointer, err := readQueuePointer(c, pointerKey)
 	if err != nil {
 		return tailKey, errors.Wrap(err, "failed to read key of a tail item")
 	}
-	tailPointer := res.(QueuePointer)
 	//fmt.Printf("****TAIL****** %+v ", tailPointer)
 
 	return tailPointer.PointerKey, nil
@@ -80,12 +80,10 @@ func getHeadItem(c router.Context) (headItem QueueItem, err error) {
 	if err != nil {
 		return headItem, err
 	}
-
-	res, err := c.State().Get(headItemKey, &QueueItem{})
+	headItem, err = readQueueItem(c, headItemKey)
 	if err != nil {
 		return headItem, errors.Wrap(err, "failed to load head item")
 	}
-	headItem = res.(QueueItem)
 	return headItem, nil
 }
 
@@ -95,15 +93,14 @@ func getTailItem(c router.Context) (tailItem QueueItem, err error) {
 		return tailItem, err
 	}
 
-	if reflect.DeepEqual(tailItemKey, EmptyItemPointerKey) {
+	if isKeyEmpty(tailItemKey) {
 		return tailItem, errors.New("Empty queue")
 	}
 
-	res, err := c.State().Get(tailItemKey, &QueueItem{})
+	tailItem, err = readQueueItem(c, tailItemKey)
 	if err != nil {
 		return tailItem, errors.Wrap(err, "failed to load tail item")
 	}
-	tailItem = res.(QueueItem)
 	return tailItem, nil
 }
 
@@ -131,4 +128,22 @@ func hasHead(c router.Context) (bool, error) {
 
 func isKeyEmpty(key []string) bool {
 	return reflect.DeepEqual(key, EmptyItemPointerKey)
+}
+
+func readQueueItem(c router.Context, itemKey []string) (item QueueItem, err error) {
+	res, err := c.State().Get(itemKey, &QueueItem{})
+	if err != nil {
+		return item, errors.Wrapf(err, "failed to read QueueItem with key '%v'", itemKey)
+	}
+	item = res.(QueueItem)
+	return item, nil
+}
+
+func readQueuePointer(c router.Context, key []string) (pointerItem QueuePointer, err error) {
+	res, err := c.State().Get(key, &QueuePointer{})
+	if err != nil {
+		return pointerItem, errors.Wrapf(err, "failed to read QueuePointer with key '%v'", key)
+	}
+	pointerItem = res.(QueuePointer)
+	return pointerItem, nil
 }
