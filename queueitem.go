@@ -1,7 +1,6 @@
 package hlfq
 
 import (
-	"fmt"
 	"reflect"
 	"time"
 
@@ -66,13 +65,13 @@ func (qi QueueItem) Key() ([]string, error) {
 }
 
 func (qi QueueItem) hasNext() bool {
-	fmt.Println("== hasNext ==")
-	fmt.Printf("qi=%+v\n", qi)
+	// fmt.Println("== hasNext ==")
+	// fmt.Printf("qi=%+v\n", qi)
 	return !reflect.DeepEqual(qi.NextKey, EmptyItemPointerKey)
 }
 
 func (qi QueueItem) hasPrev() bool {
-	fmt.Println("== hasPrev ==")
-	fmt.Printf("qi=%+v\n", qi)
+	// fmt.Println("== hasPrev ==")
+	// fmt.Printf("qi=%+v\n", qi)
 	return !reflect.DeepEqual(qi.PrevKey, EmptyItemPointerKey)
 }
