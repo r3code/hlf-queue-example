@@ -2,7 +2,6 @@ package hlfq
 
 import (
 	"encoding/json"
-	"fmt"
 	"sort"
 	"time"
 
@@ -74,7 +73,7 @@ func queuePush(c router.Context) (interface{}, error) {
 	// UPDATE Head key if head not set
 	headPresent, _ := hasHead(c) // TODO: handle error
 	if !headPresent {
-		fmt.Printf("headNotPresent\n")
+		// c.Logger().Debug("*** headNotPresent")
 		// set head pointer to CUR
 		storeHeadKey(c, curItemKey) // TODO: handle store write error
 	}
