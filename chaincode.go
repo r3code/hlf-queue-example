@@ -173,7 +173,7 @@ func queueSelect(c router.Context) (interface{}, error) {
 
 func queueListItems(c router.Context) (interface{}, error) {
 	// we can raplace realization to any of queueListItems*
-	return queueListItemsAsIs(c)
+	return queueListItemsItarated(c)
 }
 
 // queueListItemsMemSorted read and return all queue items as list sorted by ULID stored in ID
@@ -237,6 +237,23 @@ func queueListItemsAsIs(c router.Context) (interface{}, error) {
 
 // gets a list form the ledger by travaling along Next links between nodes
 func queueListItemsItarated(c router.Context) (interface{}, error) {
-	// TODO: take HEAD and iterate until NEXT != *EMPTY*
-	return nil, nil
+	// TODO: take HEAD and iterate until NEXT != *EMPTY*[
+	items := []QueueItem{}
+	headPresent, _ := hasHead(c) // TODO: handle error
+	if !headPresent {
+		return items, nil // return empty list
+	}
+	head, _ := getHeadItem(c) // TODO: handle error
+	items = append(items, head)
+
+	nextKey := head.NextKey
+	for !isKeyEmpty(nextKey) {
+		item, err := readQueueItem(c, nextKey)
+		if err != nil {
+			return items, errors.Wrap(err, "failed read item to list")
+		}
+		items = append(items, item)
+		nextKey = item.NextKey
+	}
+	return items, nil
 }
