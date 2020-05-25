@@ -2,6 +2,7 @@ package hlfq_test
 
 import (
 	"testing"
+	"time"
 
 	hlfq "github.com/r3code/hlf-queue-example"
 	"github.com/s7techlab/cckit/identity/testdata"
@@ -89,32 +90,32 @@ var _ = Describe("HLFQueue", func() {
 
 	})
 
-	// Describe("Inspect Queue", func() {
+	Describe("Inspect Queue", func() {
 
-	// 	It("Allow to get queue items as list", func() {
-	// 		// Add one item
-	// 		testItems := hlfq.ExampleItems[0:3]
-	// 		for _, ti := range testItems {
-	// 			ccMock.From(Authority).Invoke("Push", ti)
-	// 			// NOTE: if there is no sleep you would get an unexpected order of elemenst in List,
-	// 			time.Sleep(time.Millisecond) // if no delay, Push() #3 of #2 can be executed before Push #1
-	// 		}
-	// 		//  &[]QueueItem{} - declares target type for unmarshalling from []byte received from chaincode
-	// 		items := expectcc.PayloadIs(ccMock.Invoke("ListItems"), &[]hlfq.QueueItem{}).([]hlfq.QueueItem)
-	// 		// fmt.Printf("  ***TEST_items=%+v\n", testItems)
-	// 		// fmt.Printf("   ***     items=%+v\n", items)
-	// 		Expect(items).To(HaveLen(3))
+		It("Allow to get queue items as list", func() {
+			// Add one item
+			testItems := hlfq.ExampleItems[0:3]
+			for _, ti := range testItems {
+				ccMock.From(Authority).Invoke("Push", ti)
+				// NOTE: if there is no sleep you would get an unexpected order of elemenst in List,
+				time.Sleep(time.Millisecond) // if no delay, Push() #3 of #2 can be executed before Push #1
+			}
+			//  &[]QueueItem{} - declares target type for unmarshalling from []byte received from chaincode
+			items := expectcc.PayloadIs(ccMock.Invoke("ListItems"), &[]hlfq.QueueItem{}).([]hlfq.QueueItem)
+			// fmt.Printf("  ***TEST_items=%+v\n", testItems)
+			// fmt.Printf("   ***     items=%+v\n", items)
+			Expect(items).To(HaveLen(3))
 
-	// 		for i, ti := range testItems {
-	// 			// Dont comapre ID, it's generated at any Push call
-	// 			Expect(items[i].Amount).To(Equal(ti.Amount))
-	// 			Expect(items[i].From).To(Equal(ti.From))
-	// 			Expect(items[i].To).To(Equal(ti.To))
+			for i, ti := range testItems {
+				// Dont comapre ID, it's generated at any Push call
+				Expect(items[i].Amount).To(Equal(ti.Amount))
+				Expect(items[i].From).To(Equal(ti.From))
+				Expect(items[i].To).To(Equal(ti.To))
 
-	// 		}
+			}
 
-	// 	})
-	// })
+		})
+	})
 
 	// Describe("Attach extra context to item", func() {
 
