@@ -112,7 +112,7 @@ func hasTail(c router.Context) (bool, error) {
 	if err != nil {
 		return false, err
 	}
-	if reflect.DeepEqual(tailKey, EmptyItemPointerKey) {
+	if isKeyEmpty(tailKey) {
 		return false, nil
 	}
 	return true, nil
@@ -123,9 +123,12 @@ func hasHead(c router.Context) (bool, error) {
 	if err != nil {
 		return false, err
 	}
-	if reflect.DeepEqual(headKey, EmptyItemPointerKey) {
+	if isKeyEmpty(headKey) {
 		return false, nil
 	}
 	return true, nil
 }
 
+func isKeyEmpty(key []string) bool {
+	return reflect.DeepEqual(key, EmptyItemPointerKey)
+}
