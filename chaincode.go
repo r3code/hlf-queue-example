@@ -29,7 +29,7 @@ func New() *router.Chaincode {
 		Invoke("Push", queuePush, pdef.Struct(newItemSpecParam, &QueueItemSpec{})). // 1 struct argument, insert an item to the end of queue (chaincode method name `hlfqueuePush`)
 		Invoke("Pop", queuePop).                                                    // 1 struct argument, get the oldes item and delete it from queue
 		Invoke("ListItems", queueListItems).
-		Invoke("AttachData", queueAttachData, pdef.String(itemKeyParam), pdef.Bytes(attachedDataParam)).
+		Invoke("AttachData", queueAttachData, pdef.String(itemIDParam), pdef.Bytes(attachedDataParam)).
 		Query("Select", queueSelect, pdef.String(selectQueryStringParam))
 
 	return router.NewChaincode(r)
@@ -44,7 +44,7 @@ const (
 	newItemSpecParam       = "newItemSpec"
 	extractedItemParam     = "extractedItem"
 	selectQueryStringParam = "queryString"
-	itemKeyParam           = "itemKey"
+	itemIDParam            = "itemID"
 	initQueueNameParam     = "queueName"
 	attachedDataParam      = "attachedData"
 )
@@ -148,9 +148,23 @@ func queuePop(c router.Context) (extractedItem interface{}, err error) {
 // arg1 -> attachDataMethodParamKey string
 // arg2 -> attachDataMethodParamData []bytes
 func queueAttachData(c router.Context) (interface{}, error) {
-	//p := c.Param(attachDataMethodParam)
-	//item := c.State().Get()
-	return nil, nil
+	idStr := c.ParamString(itemIDParam)
+	id, err := ulid.ParseStrict(idStr)
+	if err != nil {
+		return nil, errors.Wrap(err, "invalid ULID string passed")
+	}
+	extraData := c.ParamBytes(attachedDataParam)
+	queryItem := &QueueItem{ID: id}
+	key, _ := queryItem.Key()
+	item, err := readQueueItem(c, key)
+	if err != nil {
+		return nil, errors.Wrap(err, "can not read item to attach data")
+	}
+	copy(extraData, item.ExtraData)
+	if err := c.State().Put(item); err != nil {
+		return nil, errors.Wrap(err, "failed to update item with extra data")
+	}
+	return item, nil
 }
 
 // returns error if key not exists
