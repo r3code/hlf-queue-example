@@ -64,9 +64,11 @@ func queuePush(c router.Context) (interface{}, error) {
 		tailItem.NextKey = curItemKey // TAIL->CUR
 		tailKey, _ := tailItem.Key()  // TODO: handle read error
 		curItem.PrevKey = tailKey     // TAIL<-CUR
+		// update prvious tail item
+		c.State().Put(tailItem) // TODO: handle errors
 	}
 
-	// set CUR as tail
+	// set CUR as tail / replce tail kay with new one
 	storeTailKey(c, curItemKey) // TAIL = CUR
 
 	// UPDATE Head key if head not set
@@ -117,10 +119,12 @@ func queuePop(c router.Context) (extractedItem interface{}, err error) {
 	headKey, _ := readHeadItemKey(c)                   // TODO: handle error
 	resHead, _ := c.State().Get(headKey, &QueueItem{}) // TODO: handle error
 	headItem := resHead.(QueueItem)
+
+	nextKey := EmptyItemPointerKey
 	// remove Prev link from nextItem if it exists
-	if headItem.hasNext() {
+	if headItem.hasNext() { // it's not a tail
 		// получить следующий элемент
-		nextKey := headItem.NextKey
+		nextKey = headItem.NextKey
 		// получить из State nextItem
 		resNext, _ := c.State().Get(nextKey, &QueueItem{}) // TODO: handle error
 		nextItem := resNext.(QueueItem)
@@ -129,8 +133,13 @@ func queuePop(c router.Context) (extractedItem interface{}, err error) {
 		// сохранить обновленный nextItem
 		c.State().Put(nextItem) // TODO: handle error
 	}
+	storeHeadKey(c, nextKey)
+	if isKeyEmpty(nextKey) { // reached a TailItem
+		storeTailKey(c, nextKey)
+	}
 	// remove extracted item from state
 	c.State().Delete(headKey) // TODO: handle error
+
 	//return item, c.State().Delete(item)
 	extractedItem = headItem
 	return extractedItem, nil
@@ -228,6 +237,6 @@ func queueListItemsAsIs(c router.Context) (interface{}, error) {
 
 // gets a list form the ledger by travaling along Next links between nodes
 func queueListItemsItarated(c router.Context) (interface{}, error) {
-	// TODO: take HEAD and iterate until TAIL key
+	// TODO: take HEAD and iterate until NEXT != *EMPTY*
 	return nil, nil
 }
