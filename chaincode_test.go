@@ -58,21 +58,29 @@ var _ = Describe("HLFQueue", func() {
 			Expect(items).To(HaveLen(0))
 		})
 
-		It("Push 2 items and pops 2 items and checks if it in FIFO order", func() {
+		It("Push 3 items and pops 3 items and checks if it in FIFO order", func() {
 			//invoke chaincode method from non authority actor
-			// Push 2 items
+			// Push 3 items
 			expectcc.ResponseOk(
 				ccMock.From(Authority).Invoke("Push", hlfq.ExampleItems[0]))
 			expectcc.ResponseOk(
 				ccMock.From(Authority).Invoke("Push", hlfq.ExampleItems[1]))
+			expectcc.ResponseOk(
+				ccMock.From(Authority).Invoke("Push", hlfq.ExampleItems[2]))
 			headItem1 := expectcc.PayloadIs(ccMock.Invoke("Pop"), &hlfq.QueueItem{}).(hlfq.QueueItem)
 			Expect(headItem1.From).To(Equal(hlfq.ExampleItems[0].From))
 			Expect(headItem1.To).To(Equal(hlfq.ExampleItems[0].To))
 			Expect(headItem1.Amount).To(Equal(hlfq.ExampleItems[0].Amount))
+			//
 			headItem2 := expectcc.PayloadIs(ccMock.Invoke("Pop"), &hlfq.QueueItem{}).(hlfq.QueueItem)
 			Expect(headItem2.From).To(Equal(hlfq.ExampleItems[1].From))
 			Expect(headItem2.To).To(Equal(hlfq.ExampleItems[1].To))
 			Expect(headItem2.Amount).To(Equal(hlfq.ExampleItems[1].Amount))
+			//
+			headItem3 := expectcc.PayloadIs(ccMock.Invoke("Pop"), &hlfq.QueueItem{}).(hlfq.QueueItem)
+			Expect(headItem3.From).To(Equal(hlfq.ExampleItems[2].From))
+			Expect(headItem3.To).To(Equal(hlfq.ExampleItems[2].To))
+			Expect(headItem3.Amount).To(Equal(hlfq.ExampleItems[2].Amount))
 
 			// get list and check it has 0 items now
 			items := expectcc.PayloadIs(ccMock.Invoke("ListItems"), &[]hlfq.QueueItem{}).([]hlfq.QueueItem)
