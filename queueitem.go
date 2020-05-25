@@ -1,12 +1,14 @@
 package hlfq
 
 import (
+	"fmt"
+	"reflect"
 	"time"
 
 	"github.com/oklog/ulid/v2"
 )
 
-const queuePointerTypeName = "queuPointer"
+const queuePointerTypeName = "queuePointer"
 
 // QueuePointer holds a key pointing to another state
 type QueuePointer struct {
@@ -61,4 +63,16 @@ type QueueItem struct {
 // Key for QueueItem entry in chaincode state
 func (qi QueueItem) Key() ([]string, error) {
 	return []string{queueItemKeyPrefix, qi.ID.String()}, nil
+}
+
+func (qi QueueItem) hasNext() bool {
+	fmt.Printf("qi=%+v", qi)
+	fmt.Printf("qi.NextKey=%+v", qi.NextKey)
+	fmt.Printf("EmptyItemPointerKey=%+v", EmptyItemPointerKey)
+	return !reflect.DeepEqual(qi.NextKey, EmptyItemPointerKey)
+}
+
+func (qi QueueItem) hasPrev() bool {
+	fmt.Printf("qi.PrevKey=%+v", qi.PrevKey)
+	return !reflect.DeepEqual(qi.PrevKey, EmptyItemPointerKey)
 }
