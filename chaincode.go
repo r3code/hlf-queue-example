@@ -128,9 +128,9 @@ func queuePop(c router.Context) (extractedItem interface{}, err error) {
 		// получить из State nextItem
 		resNext, _ := c.State().Get(nextKey, &QueueItem{}) // TODO: handle error
 		nextItem := resNext.(QueueItem)
-		// удалить у nextItem его Prev
+		// remove PrevKey from nextItem
 		nextItem.PrevKey = EmptyItemPointerKey
-		// сохранить обновленный nextItem
+		// save updated nextItem
 		c.State().Put(nextItem) // TODO: handle error
 	}
 	storeHeadKey(c, nextKey)
