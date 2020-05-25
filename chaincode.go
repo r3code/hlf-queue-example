@@ -155,12 +155,13 @@ func queueAttachData(c router.Context) (interface{}, error) {
 	}
 	extraData := c.ParamBytes(attachedDataParam)
 	queryItem := &QueueItem{ID: id}
-	key, _ := queryItem.Key()
+	key, _ := queryItem.Key() // always no error
 	item, err := readQueueItem(c, key)
 	if err != nil {
 		return nil, errors.Wrap(err, "can not read item to attach data")
 	}
-	copy(extraData, item.ExtraData)
+	item.ExtraData = append(item.ExtraData, extraData...)
+	// fmt.Printf("\n\n***** item=%+v\n\n", item)
 	if err := c.State().Put(item); err != nil {
 		return nil, errors.Wrap(err, "failed to update item with extra data")
 	}
