@@ -257,7 +257,7 @@ var _ = Describe("HLFQueue", func() {
 
 	Describe("Items Rrordering", func() {
 
-		It("Allows to move an item to the place AFTER specified item", func() {
+		It("Allows to move an item to the place AFTER specified item in the middle", func() {
 			// we need new empty queue
 			ccMock3 := testcc.NewMockStub("hlfq_mock3", hlfq.New())
 			expectcc.ResponseOk(ccMock3.From(Authority).Init()) // init chaincode2
@@ -266,28 +266,35 @@ var _ = Describe("HLFQueue", func() {
 			expectcc.ResponseOk(
 				ccMock3.From(Authority).Invoke("Push", hlfq.ExampleItems[0])) // Amount=1
 			expectcc.ResponseOk(
-				ccMock3.From(Authority).Invoke("Push", hlfq.ExampleItems[1])) // Amount=2
+				ccMock3.From(Authority).Invoke("Push", hlfq.ExampleItems[1])) // Amount=2 - MOVING ITEM
 			expectcc.ResponseOk(
-				ccMock3.From(Authority).Invoke("Push", hlfq.ExampleItems[2])) // Amount=3
-
+				ccMock3.From(Authority).Invoke("Push", hlfq.ExampleItems[2])) // Amount=3 - PASTE AFTER
+			expectcc.ResponseOk(
+				ccMock3.From(Authority).Invoke("Push", hlfq.ExampleItems[3])) // Amount=4
+			// We expect to see Amout list: 1, 3, 2, 4
 			itemsInQueue := expectcc.PayloadIs(ccMock3.Invoke("ListItems"), &[]hlfq.QueueItem{}).([]hlfq.QueueItem)
-			Expect(itemsInQueue).To(HaveLen(3))
+			Expect(itemsInQueue).To(HaveLen(4))
+
+			movingItem := itemsInQueue[1] // Amount = 2
+			afterItem := itemsInQueue[2]  // Amount = 3
+
 			movedItem := expectcc.PayloadIs(
-				ccMock3.From(Authority).Invoke("MoveAfter", itemsInQueue[0].ID.String(), itemsInQueue[1].ID.String()),
+				ccMock3.From(Authority).Invoke("MoveAfter", movingItem.ID.String(), afterItem.ID.String()),
 				&hlfq.QueueItem{}).(hlfq.QueueItem)
 
 			// check method returned the same item that was passed in
-			Expect(movedItem.From).To(Equal(itemsInQueue[0].From))
-			Expect(movedItem.To).To(Equal(itemsInQueue[0].To))
-			Expect(movedItem.ID.String()).To(Equal(itemsInQueue[0].ID.String()))
+			Expect(movedItem.From).To(Equal(movingItem.From), "")
+			Expect(movedItem.To).To(Equal(movingItem.To))
+			Expect(movedItem.ID.String()).To(Equal(movingItem.ID.String()))
+
 			// check list is reordered
 			reorderedList := expectcc.PayloadIs(ccMock3.Invoke("ListItems"), &[]hlfq.QueueItem{}).([]hlfq.QueueItem)
-			expectedList := []hlfq.QueueItem{itemsInQueue[1], itemsInQueue[0], itemsInQueue[2]}
-			Expect(reorderedList).To(Equal(expectedList))
+			Expect(reorderedList).To(HaveLen(len(itemsInQueue)))
 
-			// Expect(reorderedList[0].ID.String()).To(Equal(itemsInQueue[1].ID.String()))
-			// Expect(reorderedList[1].ID.String()).To(Equal(itemsInQueue[0].ID.String()))
-			// Expect(reorderedList[2].ID.String()).To(Equal(itemsInQueue[2].ID.String()))
+			Expect(reorderedList[0].Amount).To(Equal(itemsInQueue[0].Amount), "#1 ID"+reorderedList[0].ID.String())
+			Expect(reorderedList[1].Amount).To(Equal(itemsInQueue[2].Amount), "#2 ID"+reorderedList[1].ID.String())
+			Expect(reorderedList[2].Amount).To(Equal(itemsInQueue[1].Amount), "#3 ID"+reorderedList[2].ID.String())
+			Expect(reorderedList[3].Amount).To(Equal(itemsInQueue[3].Amount), "#4 ID"+reorderedList[3].ID.String())
 		})
 
 		// It("Allows to move an item to the place BEFORE specified item", func() {
