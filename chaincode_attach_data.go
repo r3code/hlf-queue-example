@@ -1,7 +1,6 @@
 package hlfq
 
 import (
-	"github.com/oklog/ulid/v2"
 	"github.com/pkg/errors"
 	"github.com/s7techlab/cckit/router"
 )
@@ -12,15 +11,9 @@ const attachedDataParam = "attachedData"
 // arg1 -> attachDataMethodParamKey string
 // arg2 -> attachDataMethodParamData []bytes
 func queueAttachData(c router.Context) (interface{}, error) {
-	idStr := c.ParamString(itemIDParam)
-	id, err := ulid.ParseStrict(idStr)
-	if err != nil {
-		return nil, errors.Wrap(err, "invalid ULID string passed")
-	}
+	itemIDStr := c.ParamString(itemIDParam)
 	extraData := c.ParamBytes(attachedDataParam)
-	queryItem := &QueueItem{ID: id}
-	key, _ := queryItem.Key() // always no error
-	item, err := readQueueItem(c, key)
+	item, err := readQueueItemByID(c, itemIDStr)
 	if err != nil {
 		return nil, errors.Wrap(err, "can not read item to attach data")
 	}
