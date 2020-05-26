@@ -163,3 +163,27 @@ func readQueuePointer(c router.Context, key []string) (pointerItem QueuePointer,
 	pointerItem = res.(QueuePointer)
 	return pointerItem, nil
 }
+
+// connect left item to right
+func connectItems(c router.Context, leftIDStr string, rightIDStr string) (err error) {
+	leftItem, err := readQueueItemByID(c, leftIDStr)
+	if err != nil {
+		return errors.Wrapf(err, "failed load leftItem ID '%s'", leftIDStr)
+	}
+	leftItemKey, _ := leftItem.Key()
+	rightItem, err := readQueueItemByID(c, rightIDStr)
+	if err != nil {
+		return errors.Wrapf(err, "failed load rightItem ID '%s'", rightIDStr)
+	}
+	rightItemKey, _ := rightItem.Key()
+	leftItem.NextKey = rightItemKey
+	rightItem.PrevKey = leftItemKey
+	err = c.State().Put(leftItem)
+	if err != nil {
+		return errors.Wrap(err, "faild to save leftItem")
+	}
+	c.State().Put(rightItem)
+	if err != nil {
+		return errors.Wrap(err, "faild to save rightItem")
+	}
+}
