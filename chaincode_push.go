@@ -14,6 +14,8 @@ import (
 // ** Chaincode method **
 // **
 
+const newItemSpecParam = "newItemSpec"
+
 // queuePush adds an item after last queue item
 func queuePush(c router.Context) (interface{}, error) {
 	spec := c.Param(newItemSpecParam).(QueueItemSpec)

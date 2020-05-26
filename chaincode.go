@@ -32,13 +32,8 @@ func New() *router.Chaincode {
 // **
 
 const (
-	queueItemKeyPrefix     = "queueItemKey"
-	newItemSpecParam       = "newItemSpec"
-	extractedItemParam     = "extractedItem"
-	selectQueryStringParam = "queryString"
-	itemIDParam            = "itemID"
-	initQueueNameParam     = "queueName"
-	attachedDataParam      = "attachedData"
+	queueItemKeyPrefix = "queueItemKey"
+	itemIDParam        = "itemID"
 )
 
 func queueListItems(c router.Context) (interface{}, error) {

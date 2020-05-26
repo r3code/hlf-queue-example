@@ -8,6 +8,8 @@ import (
 	"github.com/s7techlab/cckit/router"
 )
 
+const selectQueryStringParam = "queryString"
+
 // Select get elemets specified by CouchDB query
 // arg1 =`queryString` - query in `expr` syntax
 // returns error query syntax is invalid

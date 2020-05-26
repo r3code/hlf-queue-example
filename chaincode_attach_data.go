@@ -6,6 +6,8 @@ import (
 	"github.com/s7techlab/cckit/router"
 )
 
+const attachedDataParam = "attachedData"
+
 // attcahes extra data to the item specified by key, returns error if key not exists
 // arg1 -> attachDataMethodParamKey string
 // arg2 -> attachDataMethodParamData []bytes
