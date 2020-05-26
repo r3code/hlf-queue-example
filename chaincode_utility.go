@@ -3,6 +3,7 @@ package hlfq
 import (
 	"reflect"
 
+	"github.com/oklog/ulid/v2"
 	"github.com/pkg/errors"
 	"github.com/s7techlab/cckit/router"
 )
@@ -134,6 +135,21 @@ func readQueueItem(c router.Context, itemKey []string) (item QueueItem, err erro
 	res, err := c.State().Get(itemKey, &QueueItem{})
 	if err != nil {
 		return item, errors.Wrapf(err, "failed to read QueueItem with key '%v'", itemKey)
+	}
+	item = res.(QueueItem)
+	return item, nil
+}
+
+func readQueueItemByID(c router.Context, itemIDStr string) (item QueueItem, err error) {
+	id, err := ulid.ParseStrict(itemIDStr)
+	if err != nil {
+		return item, errors.Wrap(err, "invalid ULID string passed")
+	}
+	itemForKey := QueueItem{ID: id}
+	itemKey, _ := itemForKey.Key()
+	res, err := c.State().Get(itemKey, &QueueItem{})
+	if err != nil {
+		return item, errors.Wrapf(err, "failed to read QueueItem with ID '%s'", itemIDStr)
 	}
 	item = res.(QueueItem)
 	return item, nil
