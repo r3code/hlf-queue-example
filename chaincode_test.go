@@ -1,6 +1,7 @@
 package hlfq_test
 
 import (
+	"fmt"
 	"testing"
 	"time"
 
@@ -195,6 +196,61 @@ var _ = Describe("HLFQueue", func() {
 				&[]hlfq.QueueItem{}).([]hlfq.QueueItem)
 
 			Expect(filteredItems).To(HaveLen(0))
+		})
+
+		It("Should select 2 items where From = 'A'", func() {
+			// we need new empty queue
+			ccMock2 := testcc.NewMockStub("hlfq_mock2", hlfq.New())
+			expectcc.ResponseOk(ccMock2.From(Authority).Init()) // init chaincode2
+
+			// Push 3 items
+			expectcc.ResponseOk(
+				ccMock2.From(Authority).Invoke("Push", hlfq.ExampleItems[0])) // Amount=1
+			expectcc.ResponseOk(
+				ccMock2.From(Authority).Invoke("Push", hlfq.ExampleItems[1])) // Amount=2
+			expectcc.ResponseOk(
+				ccMock2.From(Authority).Invoke("Push", hlfq.ExampleItems[2])) // Amount=3
+			expectcc.ResponseOk(
+				ccMock2.From(Authority).Invoke("Push", hlfq.ExampleItems[3])) // Amount=4
+
+			From := "A"
+			queryStr := fmt.Sprintf("{.From == '%s' }", From)
+			filteredItems := expectcc.PayloadIs(
+				ccMock2.From(Authority).Invoke("Select", queryStr),
+				&[]hlfq.QueueItem{}).([]hlfq.QueueItem)
+
+			Expect(filteredItems).To(HaveLen(2))
+			Expect(filteredItems[0].From).To(Equal(From))
+			Expect(filteredItems[0].Amount).To(Equal(hlfq.ExampleItems[0].Amount))
+			Expect(filteredItems[1].From).To(Equal(From))
+			Expect(filteredItems[1].Amount).To(Equal(hlfq.ExampleItems[2].Amount))
+		})
+
+		It("Should select 1 item where From = 'A' and Amount > 2", func() {
+			// we need new empty queue
+			ccMock2 := testcc.NewMockStub("hlfq_mock2", hlfq.New())
+			expectcc.ResponseOk(ccMock2.From(Authority).Init()) // init chaincode2
+
+			// Push 3 items
+			expectcc.ResponseOk(
+				ccMock2.From(Authority).Invoke("Push", hlfq.ExampleItems[0])) // Amount=1
+			expectcc.ResponseOk(
+				ccMock2.From(Authority).Invoke("Push", hlfq.ExampleItems[1])) // Amount=2
+			expectcc.ResponseOk(
+				ccMock2.From(Authority).Invoke("Push", hlfq.ExampleItems[2])) // Amount=3
+			expectcc.ResponseOk(
+				ccMock2.From(Authority).Invoke("Push", hlfq.ExampleItems[3])) // Amount=4
+
+			From := "A"
+			Amount := 2
+			queryStr := fmt.Sprintf("{.From == '%s' and .Amount > %d }", From, Amount)
+			filteredItems := expectcc.PayloadIs(
+				ccMock2.From(Authority).Invoke("Select", queryStr),
+				&[]hlfq.QueueItem{}).([]hlfq.QueueItem)
+
+			Expect(filteredItems).To(HaveLen(1))
+			Expect(filteredItems[0].From).To(Equal(From))
+			Expect(filteredItems[0].Amount).To(BeNumerically(">=", Amount))
 		})
 
 	})

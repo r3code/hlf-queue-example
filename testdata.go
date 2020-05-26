@@ -11,12 +11,12 @@ var ExampleItems = []QueueItemSpec{{
 	To:     "C",
 	Amount: 2,
 }, {
-	From:   "C",
-	To:     "D",
+	From:   "A",
+	To:     "B",
 	Amount: 3,
 }, {
-	From:      "D",
-	To:        "F",
+	From:      "C",
+	To:        "B",
 	Amount:    4,
-	ExtraData: []byte("Extra Data for D:F->4"),
+	ExtraData: []byte("Extra Data for C:B->4"),
 }}
