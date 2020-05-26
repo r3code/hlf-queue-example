@@ -8,6 +8,12 @@ import (
 	"github.com/s7techlab/cckit/router"
 )
 
+// chaincode method handler
+func queueListItems(c router.Context) (interface{}, error) {
+	// we can raplace realization to any of queueListItems*
+	return queueListItemsItarated(c)
+}
+
 // ###
 // ## Different ways of listing queue items
 // ###

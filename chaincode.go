@@ -35,8 +35,3 @@ const (
 	queueItemKeyPrefix = "queueItemKey"
 	itemIDParam        = "itemID"
 )
-
-func queueListItems(c router.Context) (interface{}, error) {
-	// we can raplace realization to any of queueListItems*
-	return queueListItemsItarated(c)
-}
