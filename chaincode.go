@@ -10,6 +10,8 @@ import (
 const (
 	queueItemKeyPrefix = "queueItemKey"
 	itemIDParam        = "itemID"
+	afterItemIDParam   = "afterItemID"
+	beforeItemIDParam  = "beforeItemID"
 )
 
 // New inits a chaincode, adds chaincode methods to the rourer
@@ -27,6 +29,8 @@ func New() *router.Chaincode {
 		Invoke("Pop", queuePop).
 		Invoke("ListItems", queueListItems).
 		Invoke("AttachData", queueAttachData, pdef.String(itemIDParam), pdef.Bytes(attachedDataParam)).
+		Invoke("MoveAfter", queueMoveAfter, pdef.String(itemIDParam), pdef.String(afterItemIDParam)).
+		Invoke("MoveBefore", queueMoveBefore, pdef.String(itemIDParam), pdef.String(beforeItemIDParam)).
 		Query("Select", queueSelect, pdef.String(selectQueryStringParam))
 
 	return router.NewChaincode(r)
