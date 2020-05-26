@@ -147,6 +147,58 @@ var _ = Describe("HLFQueue", func() {
 
 	})
 
+	Describe("Check Select by Filter", func() {
+
+		It("Selects items with specified Amount range", func() {
+			// we need new empty queue
+			ccMock2 := testcc.NewMockStub("hlfq_mock2", hlfq.New())
+			expectcc.ResponseOk(ccMock2.From(Authority).Init()) // init chaincode2
+
+			// Push 3 items
+			expectcc.ResponseOk(
+				ccMock2.From(Authority).Invoke("Push", hlfq.ExampleItems[0])) // Amount=1
+			expectcc.ResponseOk(
+				ccMock2.From(Authority).Invoke("Push", hlfq.ExampleItems[1])) // Amount=2
+			expectcc.ResponseOk(
+				ccMock2.From(Authority).Invoke("Push", hlfq.ExampleItems[2])) // Amount=3
+			expectcc.ResponseOk(
+				ccMock2.From(Authority).Invoke("Push", hlfq.ExampleItems[3])) // Amount=4
+
+			queryStr := "{.Amount > 1 and .Amount < 4}"
+			filteredItems := expectcc.PayloadIs(
+				ccMock2.From(Authority).Invoke("Select", queryStr),
+				&[]hlfq.QueueItem{}).([]hlfq.QueueItem)
+
+			Expect(filteredItems).To(HaveLen(2))
+			Expect(filteredItems[0].Amount).To(Equal(hlfq.ExampleItems[1].Amount))
+			Expect(filteredItems[1].Amount).To(Equal(hlfq.ExampleItems[2].Amount))
+		})
+
+		It("Should select 0 items when Amount is out of range", func() {
+			// we need new empty queue
+			ccMock2 := testcc.NewMockStub("hlfq_mock2", hlfq.New())
+			expectcc.ResponseOk(ccMock2.From(Authority).Init()) // init chaincode2
+
+			// Push 3 items
+			expectcc.ResponseOk(
+				ccMock2.From(Authority).Invoke("Push", hlfq.ExampleItems[0])) // Amount=1
+			expectcc.ResponseOk(
+				ccMock2.From(Authority).Invoke("Push", hlfq.ExampleItems[1])) // Amount=2
+			expectcc.ResponseOk(
+				ccMock2.From(Authority).Invoke("Push", hlfq.ExampleItems[2])) // Amount=3
+			expectcc.ResponseOk(
+				ccMock2.From(Authority).Invoke("Push", hlfq.ExampleItems[3])) // Amount=4
+
+			queryStr := "{.Amount > 100 }"
+			filteredItems := expectcc.PayloadIs(
+				ccMock2.From(Authority).Invoke("Select", queryStr),
+				&[]hlfq.QueueItem{}).([]hlfq.QueueItem)
+
+			Expect(filteredItems).To(HaveLen(0))
+		})
+
+	})
+
 	// Describe("Items Rrordering", func() {
 
 	// 	It("Allows to move an item to the place AFTER specified item", func() {
