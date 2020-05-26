@@ -12,6 +12,29 @@ import (
 // ## Different ways of listing queue items
 // ###
 
+// gets a list form the ledger by travaling along Next links between nodes
+func queueListItemsItarated(c router.Context) (interface{}, error) {
+	// TODO: take HEAD and iterate until NEXT != *EMPTY*[
+	items := []QueueItem{}
+	headPresent, _ := hasHead(c) // TODO: handle error
+	if !headPresent {
+		return items, nil // return empty list
+	}
+	head, _ := getHeadItem(c) // TODO: handle error
+	items = append(items, head)
+
+	nextKey := head.NextKey
+	for !isKeyEmpty(nextKey) {
+		item, err := readQueueItem(c, nextKey)
+		if err != nil {
+			return items, errors.Wrap(err, "failed read item to list")
+		}
+		items = append(items, item)
+		nextKey = item.NextKey
+	}
+	return items, nil
+}
+
 // queueListItemsMemSorted read and return all queue items as list sorted by ULID stored in ID
 func queueListItemsMemSorted(c router.Context) (interface{}, error) {
 	res, err := c.State().List(queueItemKeyPrefix, &QueueItem{})
@@ -69,27 +92,4 @@ func queueListItemsDBSorted(c router.Context) (interface{}, error) {
 // queueListItemsAsIs returns queue items in order they retreived from state DB (unexpected)
 func queueListItemsAsIs(c router.Context) (interface{}, error) {
 	return c.State().List(queueItemKeyPrefix, &QueueItem{})
-}
-
-// gets a list form the ledger by travaling along Next links between nodes
-func queueListItemsItarated(c router.Context) (interface{}, error) {
-	// TODO: take HEAD and iterate until NEXT != *EMPTY*[
-	items := []QueueItem{}
-	headPresent, _ := hasHead(c) // TODO: handle error
-	if !headPresent {
-		return items, nil // return empty list
-	}
-	head, _ := getHeadItem(c) // TODO: handle error
-	items = append(items, head)
-
-	nextKey := head.NextKey
-	for !isKeyEmpty(nextKey) {
-		item, err := readQueueItem(c, nextKey)
-		if err != nil {
-			return items, errors.Wrap(err, "failed read item to list")
-		}
-		items = append(items, item)
-		nextKey = item.NextKey
-	}
-	return items, nil
 }
