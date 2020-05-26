@@ -26,8 +26,8 @@ func New() *router.Chaincode {
 	r.Init(invokeInitLedger) // no params
 
 	r.
-		Invoke("Push", queuePush, pdef.Struct(newItemSpecParam, &QueueItemSpec{})). // 1 struct argument, insert an item to the end of queue (chaincode method name `hlfqueuePush`)
-		Invoke("Pop", queuePop).                                                    // 1 struct argument, get the oldes item and delete it from queue
+		Invoke("Push", queuePush, pdef.Struct(newItemSpecParam, &QueueItemSpec{})).
+		Invoke("Pop", queuePop).
 		Invoke("ListItems", queueListItems).
 		Invoke("AttachData", queueAttachData, pdef.String(itemIDParam), pdef.Bytes(attachedDataParam)).
 		Query("Select", queueSelect, pdef.String(selectQueryStringParam))
