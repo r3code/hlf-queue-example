@@ -7,6 +7,11 @@ import (
 	pdef "github.com/s7techlab/cckit/router/param"
 )
 
+const (
+	queueItemKeyPrefix = "queueItemKey"
+	itemIDParam        = "itemID"
+)
+
 // New inits a chaincode, adds chaincode methods to the rourer
 // All methods allow access to anyone
 func New() *router.Chaincode {
@@ -26,12 +31,3 @@ func New() *router.Chaincode {
 
 	return router.NewChaincode(r)
 }
-
-// **
-// ** Chaincode methods **
-// **
-
-const (
-	queueItemKeyPrefix = "queueItemKey"
-	itemIDParam        = "itemID"
-)
