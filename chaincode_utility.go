@@ -208,9 +208,11 @@ func cutItem(c router.Context, itemIDStr string) (item QueueItem, err error) {
 		if err != nil {
 			return item, errors.Wrapf(err, "failed load prev item for ID '%s'", itemIDStr)
 		}
+		fmt.Printf("*** prevItem.OLD=%+v\n", nextItem)
 		prevItem.NextKey = item.NextKey
 		// save updated prevItem
 		c.State().Put(prevItem) // TODO: handle error
+		fmt.Printf("*** prevItem.NEW=%+v\n", nextItem)
 	}
 	// update NextID of an item before targetItem if present
 	if item.hasNext() {
@@ -219,11 +221,12 @@ func cutItem(c router.Context, itemIDStr string) (item QueueItem, err error) {
 		if err != nil {
 			return item, errors.Wrapf(err, "failed load next item for ID '%s'", itemIDStr)
 		}
+		fmt.Printf("*** nextItem.OLD=%+v\n", nextItem)
 		nextItem.PrevKey = item.PrevKey
 		// save updated nextItem
 		c.State().Put(nextItem) // TODO: handle error
 
-		fmt.Printf("*** NEXT=%+v", nextItem)
+		fmt.Printf("*** nextItem.NEW=%+v\n", nextItem)
 	}
 	return item, nil
 }
