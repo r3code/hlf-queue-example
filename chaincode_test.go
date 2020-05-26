@@ -255,25 +255,68 @@ var _ = Describe("HLFQueue", func() {
 
 	})
 
-	// Describe("Items Rrordering", func() {
+	Describe("Items Rrordering", func() {
 
-	// 	It("Allows to move an item to the place AFTER specified item", func() {
-	// 		//  &[]QueueItem{} - declares target type for unmarshalling from []byte received from chaincode
-	// 		// TODO: проверять что в результате в списке в очереди элемент E, идет после After
+		It("Allows to move an item to the place AFTER specified item", func() {
+			// we need new empty queue
+			ccMock2 := testcc.NewMockStub("hlfq_mock2", hlfq.New())
+			expectcc.ResponseOk(ccMock2.From(Authority).Init()) // init chaincode2
 
-	// 		//cc := expectcc.PayloadIs(cc.Invoke("hlfqueueMoveAfter"), &[]hlfq.QueueItem{}).([]hlfq.QueueItem)
-	// 		//Expect(cc).To(HaveLen(1))
-	// 		//Expect(cc[0].ID).To(Equal(hlfq.ExampleItems[0].ID))
-	// 	})
+			// Push 3 items
+			expectcc.ResponseOk(
+				ccMock2.From(Authority).Invoke("Push", hlfq.ExampleItems[0])) // Amount=1
+			expectcc.ResponseOk(
+				ccMock2.From(Authority).Invoke("Push", hlfq.ExampleItems[1])) // Amount=2
+			expectcc.ResponseOk(
+				ccMock2.From(Authority).Invoke("Push", hlfq.ExampleItems[2])) // Amount=3
 
-	// 	It("Allows to move an item to the place BEFORE specified item", func() {
-	// 		//  &[]QueueItem{} - declares target type for unmarshalling from []byte received from chaincode
-	// 		// TODO: проверять что в результате в списке в очереди элемент E, идет перед элементом Before
+			itemsInQueue := expectcc.PayloadIs(ccMock.Invoke("ListItems"), &[]hlfq.QueueItem{}).([]hlfq.QueueItem)
 
-	// 		//cc := expectcc.PayloadIs(cc.Invoke("hlfqueueMoveAfter"), &[]hlfq.QueueItem{}).([]hlfq.QueueItem)
-	// 		//Expect(cc).To(HaveLen(1))
-	// 		//Expect(cc[0].ID).To(Equal(hlfq.ExampleItems[0].ID))
-	// 	})
-	// })
+			movedItem := expectcc.PayloadIs(
+				ccMock2.From(Authority).Invoke("MoveAfter", itemsInQueue[0].ID.String(), itemsInQueue[1].ID.String()),
+				&hlfq.QueueItem{}).(hlfq.QueueItem)
+
+			// check method returned the same item that was passed in
+			Expect(movedItem.From).To(Equal(itemsInQueue[0].From))
+			Expect(movedItem.To).To(Equal(itemsInQueue[0].To))
+			Expect(movedItem.ID.String()).To(Equal(itemsInQueue[0].ID.String()))
+			// check list is reordered
+			reorderedList := expectcc.PayloadIs(ccMock.Invoke("ListItems"), &[]hlfq.QueueItem{}).([]hlfq.QueueItem)
+			Expect(reorderedList[0].ID.String()).To(Equal(itemsInQueue[1].ID.String()))
+			Expect(reorderedList[1].ID.String()).To(Equal(itemsInQueue[0].ID.String()))
+			Expect(reorderedList[2].ID.String()).To(Equal(itemsInQueue[2].ID.String()))
+		})
+
+		It("Allows to move an item to the place BEFORE specified item", func() {
+			// we need new empty queue
+			ccMock2 := testcc.NewMockStub("hlfq_mock2", hlfq.New())
+			expectcc.ResponseOk(ccMock2.From(Authority).Init()) // init chaincode2
+
+			// Push 3 items
+			expectcc.ResponseOk(
+				ccMock2.From(Authority).Invoke("Push", hlfq.ExampleItems[0])) // Amount=1
+			expectcc.ResponseOk(
+				ccMock2.From(Authority).Invoke("Push", hlfq.ExampleItems[1])) // Amount=2
+			expectcc.ResponseOk(
+				ccMock2.From(Authority).Invoke("Push", hlfq.ExampleItems[2])) // Amount=3
+
+			itemsInQueue := expectcc.PayloadIs(ccMock.Invoke("ListItems"), &[]hlfq.QueueItem{}).([]hlfq.QueueItem)
+
+			// put item[2] before item[1]
+			movedItem := expectcc.PayloadIs(
+				ccMock2.From(Authority).Invoke("MoveBefore", itemsInQueue[2].ID.String(), itemsInQueue[1].ID.String()),
+				&hlfq.QueueItem{}).(hlfq.QueueItem)
+
+			// check method returned the same item that was passed in
+			Expect(movedItem.From).To(Equal(itemsInQueue[0].From))
+			Expect(movedItem.To).To(Equal(itemsInQueue[0].To))
+			Expect(movedItem.ID.String()).To(Equal(itemsInQueue[0].ID.String()))
+			// check list is reordered
+			reorderedList := expectcc.PayloadIs(ccMock.Invoke("ListItems"), &[]hlfq.QueueItem{}).([]hlfq.QueueItem)
+			Expect(reorderedList[0].ID.String()).To(Equal(itemsInQueue[0].ID.String()))
+			Expect(reorderedList[1].ID.String()).To(Equal(itemsInQueue[2].ID.String()))
+			Expect(reorderedList[2].ID.String()).To(Equal(itemsInQueue[1].ID.String()))
+		})
+	})
 
 })
