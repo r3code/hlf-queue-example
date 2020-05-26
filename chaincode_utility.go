@@ -1,6 +1,7 @@
 package hlfq
 
 import (
+	"fmt"
 	"reflect"
 
 	"github.com/oklog/ulid/v2"
@@ -186,42 +187,43 @@ func connectItems(c router.Context, leftIDStr string, rightIDStr string) (err er
 	if err != nil {
 		return errors.Wrap(err, "faild to save rightItem")
 	}
+	return nil
 }
 
 // Unlinks the item from neighbours, and returns item data (A<->B<->C => [B], A<->C).
 // It does not delete the state from the ledger, only disconnects the item from the Prev and Next item,
 // PrevItem.NextKey replaced to item.NextKey,
 // NextItem.PrevKey replaced to item.PrevKey
-func cutItem(c router.Context, itemIDStr string) (cutItem QueueItem, err error) {
-	cutItem, err = readQueueItemByID(c, itemIDStr)
+func cutItem(c router.Context, itemIDStr string) (item QueueItem, err error) {
+	item, err = readQueueItemByID(c, itemIDStr)
 	if err != nil {
-		return cutItem, errors.Wrapf(err, "failed load item ID '%s'", itemIDStr)
+		return item, errors.Wrapf(err, "failed load item ID '%s'", itemIDStr)
 	}
 	// prev <- item -> next
-	prevKey := cutItem.PrevKey
-	nextKey := cutItem.NextKey
-	// remove links from the item being cut
-	cutItem.NextKey = EmptyItemPointerKey
-	cutItem.PrevKey = EmptyItemPointerKey
+	var prevItem, nextItem QueueItem
 	// update PrevID of an item after targetItem if present
-	if cutItem.hasPrev() {
-		prevItem, err1 := readQueueItem(c, cutItem.NextKey)
-		if err1 != nil {
-			return cutItem, errors.Wrapf(err1, "failed load prev item for ID '%s'", itemIDStr)
+	if item.hasPrev() {
+		fmt.Println("***HAS PREV")
+		prevItem, err = readQueueItem(c, item.PrevKey)
+		if err != nil {
+			return item, errors.Wrapf(err, "failed load prev item for ID '%s'", itemIDStr)
 		}
-		prevItem.NextKey = nextKey
+		prevItem.NextKey = item.NextKey
 		// save updated prevItem
 		c.State().Put(prevItem) // TODO: handle error
 	}
 	// update NextID of an item before targetItem if present
-	if cutItem.hasNext() {
-		nextItem, err2 := readQueueItem(c, cutItem.NextKey)
-		if err2 != nil {
-			return cutItem, errors.Wrapf(err2, "failed load next item for ID '%s'", itemIDStr)
+	if item.hasNext() {
+		fmt.Println("***HAS NEXT")
+		nextItem, err = readQueueItem(c, item.NextKey)
+		if err != nil {
+			return item, errors.Wrapf(err, "failed load next item for ID '%s'", itemIDStr)
 		}
-		nextItem.PrevKey = prevKey
+		nextItem.PrevKey = item.PrevKey
 		// save updated nextItem
 		c.State().Put(nextItem) // TODO: handle error
+
+		fmt.Printf("*** NEXT=%+v", nextItem)
 	}
-	return cutItem, nil
+	return item, nil
 }
