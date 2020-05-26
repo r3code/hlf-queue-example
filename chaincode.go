@@ -62,6 +62,7 @@ func queueAttachData(c router.Context) (interface{}, error) {
 	if err != nil {
 		return nil, errors.Wrap(err, "can not read item to attach data")
 	}
+	item.ExtraData = []byte{} // reset
 	item.ExtraData = append(item.ExtraData, extraData...)
 	// fmt.Printf("\n\n***** item=%+v\n\n", item)
 	if err := c.State().Put(item); err != nil {
