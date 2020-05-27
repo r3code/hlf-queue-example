@@ -52,6 +52,17 @@ func queueMoveAfter(c router.Context) (interface{}, error) {
 		// save link update of afterItemNext
 		c.State().Put(afterItemNext) // TODO: handle error
 	}
+
+	// Update the Tail pointer if we paste after the tail item
+	// check if item is a Tail, so we need to replace TailPointer
+
+	if isTailPointsTo(c, afterItem) { // pasting after tail item
+		// item now is new tail
+		setTailPointerTo(c, itemKey) // TODO: handle error
+		tailItem2, _ := getTailItem(c)
+		fmt.Printf("queueMoveAfter::--> NEW TailID=%s\n", tailItem2.ID.String())
+	}
+
 	// connect: afterItem -[next]-> item
 	afterItem.NextKey = itemKey
 
@@ -61,6 +72,7 @@ func queueMoveAfter(c router.Context) (interface{}, error) {
 	// save link update of item. Item now between after and afterNext items
 	c.State().Put(item)      // TODO: handle error
 	c.State().Put(afterItem) // TODO: handle error
+
 	return item, nil
 }
 
@@ -110,6 +122,18 @@ func queueMoveBefore(c router.Context) (interface{}, error) {
 		// save link update of beforeItemPrev
 		c.State().Put(beforeItemPrev) // TODO: handle error
 	}
+
+	// Update the Head pointer if we paste before the head item
+	// check if item is a Head, so we need to replace HeadPointer
+	if isHeadPointsTo(c, beforeItem) { // TODO: handle error
+		fmt.Println("queueMoveBefore:: beforeItem is HEAD --->[...]")
+		fmt.Printf("queueMoveBefore::***OLD HeadID=%s\n", beforeItem.ID.String())
+		// set head pointer to next item (list=X[head]<->Y => list=Y[Head], cut=X)
+		setHeadPointerTo(c, itemKey)   // TODO: handle error
+		headItem2, _ := getHeadItem(c) // TODO: handle error
+		fmt.Printf("queueMoveBefore::***NEW HeadID=%s\n", headItem2.ID.String())
+	}
+
 	// connect:  <-[prev]- item
 	beforeItem.PrevKey = itemKey
 
@@ -119,5 +143,6 @@ func queueMoveBefore(c router.Context) (interface{}, error) {
 	// save link update of item. Item now between beforeItemPrev and beforeItem items
 	c.State().Put(item)       // TODO: handle error
 	c.State().Put(beforeItem) // TODO: handle error
+
 	return item, nil
 }
