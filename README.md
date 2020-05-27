@@ -81,13 +81,30 @@ The chaincode is started with peer and chaincode logs indicating successful regi
 
 ### Push an item to the queue
 
-Push an item: 
+Push an item with data:
 
-	peer chaincode invoke -n mycc -c '{"Args":["Push", "{\"from\":\"A\",\"to\":\"B\", \"amount\": 1 }"]}' -C myc
+	{
+		"from": "A",
+		"to": "B",
+		"amount": 1
+	}
+
+Execute a command:
+
+	peer chaincode invoke -n mycc -c '{"Args":["Push", "{\"From\":\"A\",\"To\":\"B\", \"Amount\": 1 }"]}' -C myc
 
 Push an item with extra data:
 
-	peer chaincode invoke -n mycc -c '{"Args":["Push", "{\"from\":\"A\",\"to\":\"B\", \"amount\": 1, \"extra\": \"A to B\" }"]}' -C myc
+	{
+		"From": "A",
+		"To": "B",
+		"Amount": 1,
+		"ExtraData": "A to B"
+	}
+
+Execute a command:
+
+	peer chaincode invoke -n mycc -c '{"Args":["Push", "{\"From\":\"A\",\"To\":\"B\", \"Amount\": 1, \"ExtraData\": \"A to B\" }"]}' -C myc
 
 ### Pop an item from the queue
 
@@ -108,6 +125,8 @@ Cut the item with ID `01D78XYFJ1PRM1WPBCBT3VHOER` and put before `01D78XYFJ1PRM1
 	peer chaincode invoke -n mycc -c '{"Args":["MoveBefore", "01D78XYFJ1PRM1WPBCBT3VHOER", "01D78XYFJ1PRM1WPBCBT3VHMNV"]}' -C myc
 
 ### Select queue items (filtering)
+
+Select all items where `From = "A"` and `Amount > 2`
 
 	peer chaincode invoke -n mycc -c '{"Args":["Select", "{.From == \"A\" and .Amount > 2 }"]}' -C myc
 

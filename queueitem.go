@@ -40,23 +40,23 @@ func (qp QueuePointer) Key() ([]string, error) {
 
 // QueueItemSpec chaincode method argument
 type QueueItemSpec struct {
-	From      string `json:"from"`
-	To        string `json:"to"`
-	Amount    int    `json:"amount"`
-	ExtraData []byte `json:"extra"`
+	From      string `json:"From"`
+	To        string `json:"To"`
+	Amount    int    `json:"Amount"`
+	ExtraData []byte `json:"ExtraData"`
 }
 
 // QueueItem struct for chaincode state
 type QueueItem struct {
-	PrevKey   []string  `json:"prevKey"`
-	NextKey   []string  `json:"nextKey"`
-	ID        ulid.ULID `json:"id"`
-	From      string    `json:"from"`
-	To        string    `json:"to"`
-	Amount    int       `json:"amount"`
-	ExtraData []byte    `json:"extra"`
+	PrevKey   []string  `json:"PrevKey"`
+	NextKey   []string  `json:"NextKey"`
+	ID        ulid.ULID `json:"ID"`
+	From      string    `json:"From"`
+	To        string    `json:"To"`
+	Amount    int       `json:"Amount"`
+	ExtraData []byte    `json:"ExtraData"`
 
-	UpdatedTime time.Time `json:"updated_time"` // set by chaincode method
+	UpdatedTime time.Time `json:"UpdatedTime"` // set by chaincode method
 }
 
 // Key for QueueItem entry in chaincode state
