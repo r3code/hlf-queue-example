@@ -194,14 +194,35 @@ func connectItems(c router.Context, leftIDStr string, rightIDStr string) (err er
 // It does not delete the state from the ledger, only disconnects the item from the Prev and Next item,
 // PrevItem.NextKey replaced to item.NextKey,
 // NextItem.PrevKey replaced to item.PrevKey
+// Updates Head and Tail pointer if item is a head or tail item
 func cutItem(c router.Context, itemIDStr string) (item QueueItem, err error) {
 	item, err = readQueueItemByID(c, itemIDStr)
 	if err != nil {
 		return item, errors.Wrapf(err, "failed load item ID '%s'", itemIDStr)
 	}
+
+	// check if item is a Head, so we need to replace HeadPointer
+	headItem, _ := getHeadItem(c) // TODO: handle error
+	if headItem.ID.Compare(item.ID) == 0 {
+		fmt.Printf("***OLD HeadID=%s\n", headItem.ID.String())
+		// set head pointer to next item (list=X[head]<->Y => list=Y[Head], cut=X)
+		storeHeadKey(c, item.NextKey) // TODO: handle error
+		fmt.Printf("***NEW HeadID=%s\n", headItem.ID.String())
+	}
+
+	// check if item is a Tail, so we need to replace TailPointer
+	tailItem, _ := getTailItem(c)
+	if tailItem.ID.Compare(item.ID) == 0 {
+		fmt.Printf("***OLD TailID=%s\n", tailItem.ID.String())
+		// set tail pointer to prevous item (list=X->Y[Tail] => list=X[Tail], cut=Y)
+		storeTailKey(c, item.PrevKey) // TODO: handle error
+		fmt.Printf("***NEW TailID=%s\n", tailItem.ID.String())
+	}
+
 	// prev <- item -> next
 	var prevItem, nextItem QueueItem
 	// update PrevID of an item after targetItem if present
+	fmt.Printf("\n*** item=%+v\n", item)
 	if item.hasPrev() {
 		fmt.Println("***HAS PREV")
 		prevItem, err = readQueueItem(c, item.PrevKey)
@@ -216,7 +237,7 @@ func cutItem(c router.Context, itemIDStr string) (item QueueItem, err error) {
 	}
 	// update NextID of an item before targetItem if present
 	if item.hasNext() {
-		fmt.Println("***HAS NEXT")
+		// fmt.Println("***HAS NEXT")
 		nextItem, err = readQueueItem(c, item.NextKey)
 		if err != nil {
 			return item, errors.Wrapf(err, "failed load next item for ID '%s'", itemIDStr)
