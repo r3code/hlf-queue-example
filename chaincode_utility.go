@@ -202,38 +202,37 @@ func cutItem(c router.Context, itemIDStr string) (item QueueItem, err error) {
 	}
 
 	// check if item is a Head, so we need to replace HeadPointer
-	headItem, _ := getHeadItem(c) // TODO: handle error
-	if headItem.ID.Compare(item.ID) == 0 {
-		fmt.Printf("***OLD HeadID=%s\n", headItem.ID.String())
-		// set head pointer to next item (list=X[head]<->Y => list=Y[Head], cut=X)
-		storeHeadKey(c, item.NextKey) // TODO: handle error
-		fmt.Printf("***NEW HeadID=%s\n", headItem.ID.String())
+	if isHeadItem(c, item) {
+		// move head pointer to next item (list=X[head]<->Y => list=Y[Head], cut=X)
+		storeHeadKey(c, item.NextKey)  // TODO: handle error
+		headItem2, _ := getHeadItem(c) // TODO: handle error
+		fmt.Printf("***NEW HeadID=%s\n", headItem2.ID.String())
 	}
 
 	// check if item is a Tail, so we need to replace TailPointer
-	tailItem, _ := getTailItem(c)
-	if tailItem.ID.Compare(item.ID) == 0 {
-		fmt.Printf("***OLD TailID=%s\n", tailItem.ID.String())
+
+	if isTailItem(c, item) {
 		// set tail pointer to prevous item (list=X->Y[Tail] => list=X[Tail], cut=Y)
 		storeTailKey(c, item.PrevKey) // TODO: handle error
-		fmt.Printf("***NEW TailID=%s\n", tailItem.ID.String())
+		tailItem2, _ := getTailItem(c)
+		fmt.Printf("--> NEW TailID=%s\n", tailItem2.ID.String())
 	}
 
 	// prev <- item -> next
 	var prevItem, nextItem QueueItem
 	// update PrevID of an item after targetItem if present
-	fmt.Printf("\n*** item=%+v\n", item)
+	fmt.Printf("\n   *** item_TO_CUT=%+v\n\n", item)
 	if item.hasPrev() {
 		fmt.Println("***HAS PREV")
 		prevItem, err = readQueueItem(c, item.PrevKey)
 		if err != nil {
 			return item, errors.Wrapf(err, "failed load prev item for ID '%s'", itemIDStr)
 		}
-		fmt.Printf("*** prevItem.OLD=%+v\n", nextItem)
+		fmt.Printf("*** prevItem.OLD=%+v\n", prevItem)
 		prevItem.NextKey = item.NextKey
 		// save updated prevItem
 		c.State().Put(prevItem) // TODO: handle error
-		fmt.Printf("*** prevItem.NEW=%+v\n", nextItem)
+		fmt.Printf("--> prevItem.NEW=%+v\n", prevItem)
 	}
 	// update NextID of an item before targetItem if present
 	if item.hasNext() {
@@ -250,4 +249,14 @@ func cutItem(c router.Context, itemIDStr string) (item QueueItem, err error) {
 		fmt.Printf("*** nextItem.NEW=%+v\n", nextItem)
 	}
 	return item, nil
+}
+
+func isHeadItem(c router.Context, item QueueItem) bool {
+	headItem, _ := getHeadItem(c) // TODO: handle error
+	return headItem.ID.Compare(item.ID) == 0
+}
+
+func isTailItem(c router.Context, item QueueItem) bool {
+	tailItem, _ := getTailItem(c) // TODO: handle error
+	return tailItem.ID.Compare(item.ID) == 0
 }
