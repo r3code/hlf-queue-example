@@ -35,14 +35,14 @@ func queuePush(c router.Context) (interface{}, error) {
 	}
 
 	// set CUR as tail / replce tail kay with new one
-	storeTailKey(c, curItemKey) // TAIL = CUR
+	setTailPointerTo(c, curItemKey) // TAIL = CUR
 
 	// UPDATE Head key if head not set
 	headPresent, _ := hasHead(c) // TODO: handle error
 	if !headPresent {
 		// c.Logger().Debug("*** headNotPresent")
 		// set head pointer to CUR
-		storeHeadKey(c, curItemKey) // TODO: handle store write error
+		setHeadPointerTo(c, curItemKey) // TODO: handle store write error
 	}
 	// printout updated states
 	// h1, _ := readHeadItemKey(c)

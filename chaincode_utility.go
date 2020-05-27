@@ -57,7 +57,8 @@ func readTailItemKey(c router.Context) (tailKey []string, err error) {
 }
 
 // replace a tail pointer with itemKey
-func storeHeadKey(c router.Context, itemKey []string) (err error) {
+func setHeadPointerTo(c router.Context, itemKey []string) (err error) {
+	fmt.Printf("\n::--STORE HEAD: %v\n\n", itemKey)
 	headPointer := NewQueueHeadPointer()
 	headPointer.PointerKey = itemKey
 	if err := c.State().Put(headPointer); err != nil {
@@ -67,7 +68,8 @@ func storeHeadKey(c router.Context, itemKey []string) (err error) {
 }
 
 // replace a tail pointer with itemKey
-func storeTailKey(c router.Context, itemKey []string) (err error) {
+func setTailPointerTo(c router.Context, itemKey []string) (err error) {
+	fmt.Printf("\n--::STORE TAIL: %v\n\n", itemKey)
 	tailPointer := NewQueueTailPointer()
 	tailPointer.PointerKey = itemKey
 
@@ -202,18 +204,18 @@ func cutItem(c router.Context, itemIDStr string) (item QueueItem, err error) {
 	}
 
 	// check if item is a Head, so we need to replace HeadPointer
-	if isHeadItem(c, item) {
+	if isHeadPointsTo(c, item) {
 		// move head pointer to next item (list=X[head]<->Y => list=Y[Head], cut=X)
-		storeHeadKey(c, item.NextKey)  // TODO: handle error
-		headItem2, _ := getHeadItem(c) // TODO: handle error
+		setHeadPointerTo(c, item.NextKey) // TODO: handle error
+		headItem2, _ := getHeadItem(c)    // TODO: handle error
 		fmt.Printf("***NEW HeadID=%s\n", headItem2.ID.String())
 	}
 
 	// check if item is a Tail, so we need to replace TailPointer
 
-	if isTailItem(c, item) {
+	if isTailPointsTo(c, item) {
 		// set tail pointer to prevous item (list=X->Y[Tail] => list=X[Tail], cut=Y)
-		storeTailKey(c, item.PrevKey) // TODO: handle error
+		setTailPointerTo(c, item.PrevKey) // TODO: handle error
 		tailItem2, _ := getTailItem(c)
 		fmt.Printf("--> NEW TailID=%s\n", tailItem2.ID.String())
 	}
@@ -221,7 +223,7 @@ func cutItem(c router.Context, itemIDStr string) (item QueueItem, err error) {
 	// prev <- item -> next
 	var prevItem, nextItem QueueItem
 	// update PrevID of an item after targetItem if present
-	fmt.Printf("\n   *** item_TO_CUT=%+v\n\n", item)
+	fmt.Printf("\n   *** item_TO_CUT ***\n%+v\n\n", item)
 	if item.hasPrev() {
 		fmt.Println("***HAS PREV")
 		prevItem, err = readQueueItem(c, item.PrevKey)
@@ -251,12 +253,12 @@ func cutItem(c router.Context, itemIDStr string) (item QueueItem, err error) {
 	return item, nil
 }
 
-func isHeadItem(c router.Context, item QueueItem) bool {
+func isHeadPointsTo(c router.Context, item QueueItem) bool {
 	headItem, _ := getHeadItem(c) // TODO: handle error
 	return headItem.ID.Compare(item.ID) == 0
 }
 
-func isTailItem(c router.Context, item QueueItem) bool {
+func isTailPointsTo(c router.Context, item QueueItem) bool {
 	tailItem, _ := getTailItem(c) // TODO: handle error
 	return tailItem.ID.Compare(item.ID) == 0
 }

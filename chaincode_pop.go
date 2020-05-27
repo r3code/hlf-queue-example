@@ -29,9 +29,9 @@ func queuePop(c router.Context) (extractedItem interface{}, err error) {
 		// save updated nextItem
 		c.State().Put(nextItem) // TODO: handle error
 	}
-	storeHeadKey(c, nextKey)
+	setHeadPointerTo(c, nextKey)
 	if isKeyEmpty(nextKey) { // reached a TailItem
-		storeTailKey(c, nextKey)
+		setTailPointerTo(c, nextKey)
 	}
 	// remove extracted item from state
 	c.State().Delete(headKey) // TODO: handle error
