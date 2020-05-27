@@ -48,15 +48,16 @@ type QueueItemSpec struct {
 
 // QueueItem struct for chaincode state
 type QueueItem struct {
-	PrevKey   []string  `json:"PrevKey"`
-	NextKey   []string  `json:"NextKey"`
-	ID        ulid.ULID `json:"ID"`
-	From      string    `json:"From"`
-	To        string    `json:"To"`
-	Amount    int       `json:"Amount"`
-	ExtraData []byte    `json:"ExtraData"`
-
-	UpdatedTime time.Time `json:"UpdatedTime"` // set by chaincode method
+	// Queue sevice data
+	ID          ulid.ULID `json:"ID"`
+	PrevKey     []string  `json:"PrevKey"`
+	NextKey     []string  `json:"NextKey"`
+	CreatedTime time.Time `json:"CreatedTime"` // set by chaincode method
+	// Item Spec
+	From      string `json:"From"`
+	To        string `json:"To"`
+	Amount    int    `json:"Amount"`
+	ExtraData []byte `json:"ExtraData"`
 }
 
 // Key for QueueItem entry in chaincode state
