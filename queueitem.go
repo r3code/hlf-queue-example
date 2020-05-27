@@ -40,11 +40,10 @@ func (qp QueuePointer) Key() ([]string, error) {
 
 // QueueItemSpec chaincode method argument
 type QueueItemSpec struct {
-	ID        ulid.ULID
-	From      string
-	To        string
-	Amount    int
-	ExtraData []byte
+	From      string `json:"from"`
+	To        string `json:"to"`
+	Amount    int    `json:"amount"`
+	ExtraData []byte `json:"extra"`
 }
 
 // QueueItem struct for chaincode state
