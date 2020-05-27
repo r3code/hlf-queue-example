@@ -409,6 +409,40 @@ var _ = Describe("HLFQueue", func() {
 			Expect(reorderedList[2].Amount).To(Equal(itemsInQueue[1].Amount), "#3 ID"+reorderedList[2].ID.String())
 			Expect(reorderedList[3].Amount).To(Equal(itemsInQueue[3].Amount), "#4 ID"+reorderedList[3].ID.String())
 		})
+
+		It("Allows to move a tail item to the place Before head", func() {
+			// we need new empty queue
+			ccMock3 := testcc.NewMockStub("hlfq_mock3", hlfq.New())
+			expectcc.ResponseOk(ccMock3.From(Authority).Init()) // init chaincode2
+
+			// Push 3 items
+			expectcc.ResponseOk(
+				ccMock3.From(Authority).Invoke("Push", hlfq.ExampleItems[0])) // Amount=1
+			expectcc.ResponseOk(
+				ccMock3.From(Authority).Invoke("Push", hlfq.ExampleItems[1])) // Amount=2
+
+			itemsInQueue := expectcc.PayloadIs(ccMock3.Invoke("ListItems"), &[]hlfq.QueueItem{}).([]hlfq.QueueItem)
+			Expect(itemsInQueue).To(HaveLen(2), "Added 2 items to queue")
+
+			movingItem := itemsInQueue[1] // Amount = 2
+			beforeItem := itemsInQueue[0] // Amount = 1
+
+			movedItem := expectcc.PayloadIs(
+				ccMock3.From(Authority).Invoke("MoveBefore", movingItem.ID.String(), beforeItem.ID.String()),
+				&hlfq.QueueItem{}).(hlfq.QueueItem)
+
+			// check method returned the same item that was passed in
+			Expect(movedItem.From).To(Equal(movingItem.From), "")
+			Expect(movedItem.To).To(Equal(movingItem.To))
+			Expect(movedItem.ID.String()).To(Equal(movingItem.ID.String()))
+
+			// check list is reordered
+			reorderedList := expectcc.PayloadIs(ccMock3.Invoke("ListItems"), &[]hlfq.QueueItem{}).([]hlfq.QueueItem)
+			Expect(reorderedList).To(HaveLen(len(itemsInQueue)), "Want same items conunt in queue after reorder")
+
+			Expect(reorderedList[0].Amount).To(Equal(itemsInQueue[1].Amount), "#1 ID"+reorderedList[0].ID.String())
+			Expect(reorderedList[1].Amount).To(Equal(itemsInQueue[0].Amount), "#2 ID"+reorderedList[1].ID.String())
+		})
 	})
 
 })
