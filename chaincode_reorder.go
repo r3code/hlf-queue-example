@@ -7,6 +7,7 @@ import (
 	"github.com/s7techlab/cckit/router"
 )
 
+// queueMoveAfter cuts item and puts it after specified item ID.
 // returns an updated item (should have updated prev/next links)
 //   or error if itemID or afterItemID not exists
 // arg1 -> itemID string (ULID String)
@@ -25,7 +26,7 @@ func queueMoveAfter(c router.Context) (interface{}, error) {
 	}
 	itemKey, _ := item.Key()
 
-	fmt.Printf("*\n\n** CUT_ITEM=%s\n\n", item.String())
+	fmt.Printf("\n\n** queueMoveAfter :: CUT_ITEM=%s\n\n", item.String())
 	// reset links
 	item.PrevKey = EmptyItemPointerKey
 	item.NextKey = EmptyItemPointerKey
@@ -34,8 +35,6 @@ func queueMoveAfter(c router.Context) (interface{}, error) {
 	if err != nil {
 		return nil, errors.Wrapf(err, "failed load afterItem ID '%s'", afterItemIDStr)
 	}
-
-	// НУЖНО ОБНОВЛЯТЬ УКАЗАТЕЛЬ НА ГОЛОВУ и ХВОСТ
 
 	afterItemKey, _ := afterItem.Key()
 	if afterItem.hasNext() {
@@ -65,26 +64,60 @@ func queueMoveAfter(c router.Context) (interface{}, error) {
 	return item, nil
 }
 
+// queueMoveBefore cuts item and puts it before specified item ID.
 // returns an updated item (should have updated prev/next links)
 //   error if itemID or afterItemID not exists
 // arg1 -> itemID string (ULID String)
 // arg2 -> beforeItemID string (ULID String)
 func queueMoveBefore(c router.Context) (interface{}, error) {
-	// itemIDStr := c.ParamString(itemIDParam)
-	// beforeItemIDStr := c.ParamString(beforeItemIDParam)
-	// if itemIDStr == beforeItemIDStr {
-	// 	return nil, errors.New("Can not move an item before itself")
-	// }
+	itemIDStr := c.ParamString(itemIDParam)
+	beforeItemIDStr := c.ParamString(beforeItemIDParam)
+	if itemIDStr == beforeItemIDStr {
+		return nil, errors.New("Can not move an item before itself")
+	}
 
-	// item, err := cutItem(c, itemIDStr)
-	// if err != nil {
-	// 	return nil, errors.Wrapf(err, "failed load item ID '%s'", itemIDStr)
-	// }
+	// cut item and reconnect neighbours
+	item, err := cutItem(c, itemIDStr)
+	if err != nil {
+		return nil, errors.Wrapf(err, "failed to cut item ID '%s'", itemIDStr)
+	}
+	itemKey, _ := item.Key()
 
-	// beforeItem, err := readQueueItemByID(c, beforeItemIDStr)
-	// if err != nil {
-	// 	return nil, errors.Wrapf(err, "failed load beforeItem ID '%s'", beforeItemIDStr)
-	// }
+	fmt.Printf("\n\n** queueMoveBefore:: CUT_ITEM=%s\n\n", item.String())
+	// reset links
+	item.PrevKey = EmptyItemPointerKey
+	item.NextKey = EmptyItemPointerKey
 
-	return nil, nil
+	beforeItem, err := readQueueItemByID(c, beforeItemIDStr)
+	if err != nil {
+		return nil, errors.Wrapf(err, "failed load beforeItem ID '%s'", beforeItemIDStr)
+	}
+
+	beforeItemKey, _ := beforeItem.Key()
+	if beforeItem.hasPrev() {
+		// need to update Next in beforePrev item
+		// after <-> afterNext
+		beforeItemPrev, err := readQueueItem(c, beforeItem.PrevKey)
+		if err != nil {
+			return nil, errors.Wrapf(err, "failed load beforeItemNext Key='%v'", beforeItem.PrevKey)
+		}
+		beforeItemPrevKey, _ := beforeItemPrev.Key()
+		// connect: item -[next]-> beforePrev
+		// make a chain: beforeItemPrev -> item -> beforeItem
+		beforeItemPrev.NextKey = itemKey
+		// connect: item <-[prev]- beforePrev
+		item.PrevKey = beforeItemPrevKey
+		// save link update of beforeItemPrev
+		c.State().Put(beforeItemPrev) // TODO: handle error
+	}
+	// connect:  <-[prev]- item
+	beforeItem.PrevKey = itemKey
+
+	// connect: item -[next]-> beforeItem
+	item.NextKey = beforeItemKey
+
+	// save link update of item. Item now between beforeItemPrev and beforeItem items
+	c.State().Put(item)       // TODO: handle error
+	c.State().Put(beforeItem) // TODO: handle error
+	return item, nil
 }

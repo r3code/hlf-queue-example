@@ -33,6 +33,10 @@ Replaces existing item `ExtraData`.
 
 Cuts the item and puts it after specified item ID in the queue.
 
+### MoveBefore
+
+Cuts the item and puts it before specified item ID in the queue.
+
 
 ## Building
 
