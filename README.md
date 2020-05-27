@@ -128,7 +128,7 @@ Cut the item with ID `01D78XYFJ1PRM1WPBCBT3VHOER` and put before `01D78XYFJ1PRM1
 
 Select all items where `From = "A"` and `Amount > 2`
 
-	peer chaincode invoke -n mycc -c '{"Args":["Select", "{.From == \"A\" and .Amount > 2 }"]}' -C myc
+	peer chaincode query -n mycc -c '{"Args":["Select", "{.From == \"A\" and .Amount > 2 }"]}' -C myc
 
 ### Attach data	to an item with specified ID
 
