@@ -41,9 +41,9 @@ Cuts the item and puts it after specified item ID in the queue.
 
 See https://github.com/SAPDocuments/Tutorials/issues/4415
 
-go get github.com/hyperledger/fabric-chaincode-go/shim
-go get github.com/hyperledger/fabric/core/peer
-go get github.com/hyperledger/fabric/common/util
+	go get github.com/hyperledger/fabric-chaincode-go/shim
+	go get github.com/hyperledger/fabric/core/peer
+	go get github.com/hyperledger/fabric/common/util
 
 
 ### Fix Docker package error at Windows
