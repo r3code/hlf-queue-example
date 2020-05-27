@@ -1,8 +1,6 @@
 package hlfq
 
 import (
-	"fmt"
-
 	"github.com/pkg/errors"
 	"github.com/s7techlab/cckit/router"
 )
@@ -26,7 +24,7 @@ func queueMoveAfter(c router.Context) (interface{}, error) {
 	}
 	itemKey, _ := item.Key()
 
-	fmt.Printf("\n\n** queueMoveAfter :: CUT_ITEM=%s\n\n", item.String())
+	// fmt.Printf("\n\n** queueMoveAfter :: CUT_ITEM=%s\n\n", item.String())
 	// reset links
 	item.PrevKey = EmptyItemPointerKey
 	item.NextKey = EmptyItemPointerKey
@@ -59,8 +57,8 @@ func queueMoveAfter(c router.Context) (interface{}, error) {
 	if isTailPointsTo(c, afterItem) { // pasting after tail item
 		// item now is new tail
 		setTailPointerTo(c, itemKey) // TODO: handle error
-		tailItem2, _ := getTailItem(c)
-		fmt.Printf("queueMoveAfter::--> NEW TailID=%s\n", tailItem2.ID.String())
+		// tailItem2, _ := getTailItem(c)
+		// fmt.Printf("queueMoveAfter::--> NEW TailID=%s\n", tailItem2.ID.String())
 	}
 
 	// connect: afterItem -[next]-> item
@@ -95,7 +93,7 @@ func queueMoveBefore(c router.Context) (interface{}, error) {
 	}
 	itemKey, _ := item.Key()
 
-	fmt.Printf("\n\n** queueMoveBefore:: CUT_ITEM=%s\n\n", item.String())
+	// fmt.Printf("\n\n** queueMoveBefore:: CUT_ITEM=%s\n\n", item.String())
 	// reset links
 	item.PrevKey = EmptyItemPointerKey
 	item.NextKey = EmptyItemPointerKey
@@ -126,12 +124,12 @@ func queueMoveBefore(c router.Context) (interface{}, error) {
 	// Update the Head pointer if we paste before the head item
 	// check if item is a Head, so we need to replace HeadPointer
 	if isHeadPointsTo(c, beforeItem) { // TODO: handle error
-		fmt.Println("queueMoveBefore:: beforeItem is HEAD --->[...]")
-		fmt.Printf("queueMoveBefore::***OLD HeadID=%s\n", beforeItem.ID.String())
+		// fmt.Println("queueMoveBefore:: beforeItem is HEAD --->[...]")
+		// fmt.Printf("queueMoveBefore::***OLD HeadID=%s\n", beforeItem.ID.String())
 		// set head pointer to next item (list=X[head]<->Y => list=Y[Head], cut=X)
-		setHeadPointerTo(c, itemKey)   // TODO: handle error
-		headItem2, _ := getHeadItem(c) // TODO: handle error
-		fmt.Printf("queueMoveBefore::***NEW HeadID=%s\n", headItem2.ID.String())
+		setHeadPointerTo(c, itemKey) // TODO: handle error
+		// headItem2, _ := getHeadItem(c) // TODO: handle error
+		// fmt.Printf("queueMoveBefore::***NEW HeadID=%s\n", headItem2.ID.String())
 	}
 
 	// connect:  <-[prev]- item

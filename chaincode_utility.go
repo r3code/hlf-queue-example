@@ -1,7 +1,6 @@
 package hlfq
 
 import (
-	"fmt"
 	"reflect"
 
 	"github.com/oklog/ulid/v2"
@@ -58,7 +57,7 @@ func readTailItemKey(c router.Context) (tailKey []string, err error) {
 
 // replace a tail pointer with itemKey
 func setHeadPointerTo(c router.Context, itemKey []string) (err error) {
-	fmt.Printf("\n::--STORE HEAD: %v\n\n", itemKey)
+	// fmt.Printf("\n::--STORE HEAD: %v\n\n", itemKey)
 	headPointer := NewQueueHeadPointer()
 	headPointer.PointerKey = itemKey
 	if err := c.State().Put(headPointer); err != nil {
@@ -69,7 +68,7 @@ func setHeadPointerTo(c router.Context, itemKey []string) (err error) {
 
 // replace a tail pointer with itemKey
 func setTailPointerTo(c router.Context, itemKey []string) (err error) {
-	fmt.Printf("\n--::STORE TAIL: %v\n\n", itemKey)
+	// fmt.Printf("\n--::STORE TAIL: %v\n\n", itemKey)
 	tailPointer := NewQueueTailPointer()
 	tailPointer.PointerKey = itemKey
 
@@ -207,8 +206,8 @@ func cutItem(c router.Context, itemIDStr string) (item QueueItem, err error) {
 	if isHeadPointsTo(c, item) {
 		// move head pointer to next item (list=X[head]<->Y => list=Y[Head], cut=X)
 		setHeadPointerTo(c, item.NextKey) // TODO: handle error
-		headItem2, _ := getHeadItem(c)    // TODO: handle error
-		fmt.Printf("***NEW HeadID=%s\n", headItem2.ID.String())
+		// headItem2, _ := getHeadItem(c)    // TODO: handle error
+		// fmt.Printf("***NEW HeadID=%s\n", headItem2.ID.String())
 	}
 
 	// check if item is a Tail, so we need to replace TailPointer
@@ -216,25 +215,25 @@ func cutItem(c router.Context, itemIDStr string) (item QueueItem, err error) {
 	if isTailPointsTo(c, item) {
 		// set tail pointer to prevous item (list=X->Y[Tail] => list=X[Tail], cut=Y)
 		setTailPointerTo(c, item.PrevKey) // TODO: handle error
-		tailItem2, _ := getTailItem(c)
-		fmt.Printf("--> NEW TailID=%s\n", tailItem2.ID.String())
+		// tailItem2, _ := getTailItem(c)
+		// fmt.Printf("--> NEW TailID=%s\n", tailItem2.ID.String())
 	}
 
 	// prev <- item -> next
 	var prevItem, nextItem QueueItem
 	// update PrevID of an item after targetItem if present
-	fmt.Printf("\n   *** item_TO_CUT ***\n%+v\n\n", item)
+	// fmt.Printf("\n   *** item_TO_CUT ***\n%+v\n\n", item)
 	if item.hasPrev() {
-		fmt.Println("***HAS PREV")
+		// fmt.Println("***HAS PREV")
 		prevItem, err = readQueueItem(c, item.PrevKey)
 		if err != nil {
 			return item, errors.Wrapf(err, "failed load prev item for ID '%s'", itemIDStr)
 		}
-		fmt.Printf("*** prevItem.OLD=%+v\n", prevItem)
+		// fmt.Printf("*** prevItem.OLD=%+v\n", prevItem)
 		prevItem.NextKey = item.NextKey
 		// save updated prevItem
 		c.State().Put(prevItem) // TODO: handle error
-		fmt.Printf("--> prevItem.NEW=%+v\n", prevItem)
+		// fmt.Printf("--> prevItem.NEW=%+v\n", prevItem)
 	}
 	// update NextID of an item before targetItem if present
 	if item.hasNext() {
@@ -243,12 +242,12 @@ func cutItem(c router.Context, itemIDStr string) (item QueueItem, err error) {
 		if err != nil {
 			return item, errors.Wrapf(err, "failed load next item for ID '%s'", itemIDStr)
 		}
-		fmt.Printf("*** nextItem.OLD=%+v\n", nextItem)
+		// fmt.Printf("*** nextItem.OLD=%+v\n", nextItem)
 		nextItem.PrevKey = item.PrevKey
 		// save updated nextItem
 		c.State().Put(nextItem) // TODO: handle error
 
-		fmt.Printf("*** nextItem.NEW=%+v\n", nextItem)
+		// fmt.Printf("*** nextItem.NEW=%+v\n", nextItem)
 	}
 	return item, nil
 }
