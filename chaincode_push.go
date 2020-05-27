@@ -67,7 +67,7 @@ func makeQueueItem(spec QueueItemSpec, t time.Time) (*QueueItem, error) {
 		To:          spec.To,
 		Amount:      spec.Amount,
 		ExtraData:   spec.ExtraData,
-		UpdatedTime: t,
+		CreatedTime: t,
 		NextKey:     EmptyItemPointerKey,
 		PrevKey:     EmptyItemPointerKey,
 	}
