@@ -2,6 +2,7 @@ package hlfq
 
 import (
 	"encoding/json"
+	"fmt"
 	"sort"
 
 	"github.com/pkg/errors"
@@ -27,6 +28,9 @@ func queueListItemsItarated(c router.Context) (interface{}, error) {
 		return items, nil // return empty list
 	}
 	head, _ := getHeadItem(c) // TODO: handle error
+	fmt.Println("LIST Head ITEM=" + head.String())
+	tail, _ := getTailItem(c) // TODO: handle error
+	fmt.Println("LIST Tail ITEM=" + tail.String())
 	items = append(items, head)
 
 	nextKey := head.NextKey
