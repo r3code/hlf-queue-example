@@ -1,5 +1,7 @@
 # FIFO Queue Hyperledger Fabric chaincode
 
+[![Build Status](https://travis-ci.com/r3code/hlf-queue-example.svg?branch=master)](https://travis-ci.com/r3code/hlf-queue-example)
+
 HLFQueue chaincode stores and manages a FIFO queue.
 
 
