@@ -24,16 +24,18 @@ func queueMoveAfter(c router.Context) (interface{}, error) {
 		return nil, errors.Wrapf(err, "failed to cut item ID '%s'", itemIDStr)
 	}
 	itemKey, _ := item.Key()
+
+	fmt.Printf("*\n\n** CUT_ITEM=%s\n\n", item.String())
 	// reset links
 	item.PrevKey = EmptyItemPointerKey
 	item.NextKey = EmptyItemPointerKey
-
-	fmt.Printf("*** CUT_ITEM=%+v", item)
 
 	afterItem, err := readQueueItemByID(c, afterItemIDStr)
 	if err != nil {
 		return nil, errors.Wrapf(err, "failed load afterItem ID '%s'", afterItemIDStr)
 	}
+
+	// НУЖНО ОБНОВЛЯТЬ УКАЗАТЕЛЬ НА ГОЛОВУ и ХВОСТ
 
 	afterItemKey, _ := afterItem.Key()
 	if afterItem.hasNext() {
