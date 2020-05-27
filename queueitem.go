@@ -1,6 +1,7 @@
 package hlfq
 
 import (
+	"fmt"
 	"reflect"
 	"time"
 
@@ -62,6 +63,11 @@ type QueueItem struct {
 // Key for QueueItem entry in chaincode state
 func (qi QueueItem) Key() ([]string, error) {
 	return []string{queueItemKeyPrefix, qi.ID.String()}, nil
+}
+
+func (qi QueueItem) String() string {
+	return fmt.Sprintf("QueueItem{ ID: %s, PrevKey: %v, NextKey: %v, From: %s, To: %s, Amount: %d, ExtraData: %v }",
+		qi.ID.String(), qi.PrevKey, qi.NextKey, qi.From, qi.To, qi.Amount, qi.ExtraData)
 }
 
 func (qi QueueItem) hasNext() bool {
