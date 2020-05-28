@@ -3,7 +3,7 @@
 [![Build Status](https://travis-ci.com/r3code/hlf-queue-example.svg?branch=master)](https://travis-ci.com/r3code/hlf-queue-example)
 
 HLFQueue chaincode stores and manages a FIFO queue.
-
+The code based on `cckit` framework which supports only Hyperledger 1.4.
 
 ## Supported chaincode methods
 
@@ -163,6 +163,9 @@ In Linux:
 
 	$CORE_CHAINCODE_LOGGING_LEVEL=debug
 	go test // will output "DEBU" prefixed messaged to STDOUT
+
+
+	
 
 
 
